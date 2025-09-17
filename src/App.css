@@ -1,0 +1,278 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(11,11,15,0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.toolbar { display: flex; gap: 12px; align-items: center; }
+
+.btn {
+  border: 1px solid var(--border);
+  background: #16161d;
+  color: #e6e6e9;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btn:hover { background: #1b1b24; }
+
+.input, .select {
+  border: 1px solid var(--border);
+  background: #0b0b0f;
+  color: #e6e6e9;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .container { grid-template-columns: 1fr 3fr; }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.panel.pad-sm { padding: 12px; }
+.panel.pad-md { padding: 16px; }
+.panel.pad-lg { padding: 20px; }
+
+.calendar-mini-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  font-size: 12px;
+}
+.calendar-cell {
+  height: 32px;
+  border-radius: 8px;
+  background: #0c0c12;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e6e6e9;
+}
+.calendar-cell:hover { background: #12121b; }
+.calendar-cell[disabled] { opacity: 0; pointer-events: none; }
+.calendar-selected { outline: 2px solid var(--accent); }
+.calendar-today { color: var(--accent-weak); position: relative; }
+.calendar-today:after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 1px solid rgba(129,140,248,0.6);
+  border-radius: 999px;
+}
+.dow { text-align: center; color: var(--muted); }
+
+/* Highlight the selected week's row with a bordered rectangle */
+.calendar-grid .calendar-cell.week-row {
+  position: relative;
+  background: #0c0c12;
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+.calendar-grid .calendar-cell.week-row-start {
+  border-left: 2px solid var(--accent);
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+.calendar-grid .calendar-cell.week-row-end {
+  border-right: 2px solid var(--accent);
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.clock { text-align: center; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 28px; letter-spacing: 0.1em; }
+
+.section-title { font-size: 20px; font-weight: 600; }
+
+.table {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table-head {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  background: #0f0f15;
+  color: var(--muted);
+  font-size: 12px;
+}
+.table-body { max-height: 300px; overflow: auto; }
+.table-row { display: grid; grid-template-columns: 100px 1fr; background: #0b0b10; }
+.table-row:nth-child(odd) { background: #0e0e14; }
+.table-row:hover { background: #14141c; }
+.table-cell { border-top: 1px solid var(--border); }
+.table-hour { padding: 10px; color: var(--muted); border-right: 1px solid var(--border); }
+.table-task { padding: 10px; }
+.table-empty { padding: 12px; color: #9ca3af; text-align: center; }
+.task-input {
+  width: 100%; resize: vertical; min-height: 44px; border: none; outline: none; background: #0b0b0f; color: #e6e6e9; padding: 8px; border-radius: 8px;
+}
+
+.goals {
+  display: grid;
+  gap: 10px;
+}
+.goal-input {
+  width: 100%; border: 1px solid var(--border); background: #0b0b0f; color: #e6e6e9; padding: 10px; border-radius: 10px;
+}
+
+/* Weekly goals improved UI */
+.goal-list { display: grid; gap: 10px; }
+.goal-item { display: flex; gap: 10px; align-items: center; padding: 10px; background: #0f0f15; border: 1px solid var(--border); border-radius: 10px; }
+.goal-item:hover { border-color: var(--accent); }
+.goal-item input[type="checkbox"] { width: 16px; height: 16px; }
+.goal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Small pills and dividers */
+.pill { font-size: 11px; color: var(--muted); background: #0f0f15; border: 1px solid var(--border); padding: 2px 8px; border-radius: 999px; }
+.pill-lg { font-size: 12px; color: #e6e6e9; background: #14141b; border: 1px solid var(--border); padding: 4px 10px; border-radius: 999px; }
+.thin-divider { height: 1px; background: var(--border); margin: 8px 0; }
+
+.week-header { display: flex; align-items: center; gap: 10px; }
+.week-header-inner { flex: 1; display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap; padding: 6px 10px; background: #0f0f15; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+
+.date-title { font-size: 18px; font-weight: 600; }
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .calendar-mini {
+    font-size: 12px;
+  }
+  
+  .calendar-mini-header {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .calendar-grid {
+    gap: 4px;
+  }
+  
+  .calendar-cell {
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .dow {
+    font-size: 10px;
+  }
+  
+  .clock {
+    font-size: 20px !important;
+  }
+  
+  .table {
+    font-size: 12px;
+  }
+  
+  .table-head {
+    font-size: 11px;
+  }
+  
+  .table-cell {
+    padding: 8px 6px;
+  }
+  
+  .task-input {
+    font-size: 12px;
+    padding: 6px;
+    min-height: 32px;
+  }
+  
+  .goal-input {
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  .goal-item {
+    padding: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .goal-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .pill-lg {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  
+  .week-header-inner {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+  .calendar-cell {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input[type="checkbox"] {
+    min-width: 20px;
+    min-height: 20px;
+  }
+  
+  .task-input, .goal-input {
+    min-height: 44px;
+  }
+}
