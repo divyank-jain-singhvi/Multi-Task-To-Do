@@ -443,6 +443,47 @@ function WeeklyGoals({ weekKey, goals, onChange, onPrev, onNext, isMobile = fals
   )
 }
 
+// Add NotesTab component to show all notes with their dates
+function NotesTab({ dailyNotes }) {
+  // Sort notes by date descending
+  const notesArray = Object.entries(dailyNotes)
+    .filter(([date, note]) => note && note.trim() !== '')
+    .sort((a, b) => b[0].localeCompare(a[0]))
+
+  return (
+    <div style={{
+      backgroundColor: '#111116',
+      border: '1px solid #22222a',
+      borderRadius: '14px',
+      padding: '24px',
+      minHeight: '300px'
+    }}>
+      <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', color: '#e6e6e9' }}>📝 All Notes</h2>
+      {notesArray.length === 0 ? (
+        <div style={{ color: '#c7c7cb', fontSize: '15px' }}>No notes found.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          {notesArray.map(([date, note]) => (
+            <div key={date} style={{
+              backgroundColor: '#18181b',
+              borderRadius: '10px',
+              padding: '16px',
+              border: '1px solid #22222a'
+            }}>
+              <div style={{ fontSize: '14px', color: '#a1a1aa', marginBottom: '8px' }}>
+                {new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+              <div style={{ fontSize: '15px', color: '#e6e6e9', whiteSpace: 'pre-line' }}>
+                {note}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function App() {
   const [user, setUser] = useState(null)
   const [authReady, setAuthReady] = useState(false)
@@ -801,7 +842,7 @@ function App() {
                 <>
                   {/* Desktop Tabs */}
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {['Dashboard',`Pending (${totalPendingCount})`,'Calendar','Analytics','Settings'].map((tabLabel) => {
+                    {['Dashboard',`Pending (${totalPendingCount})`,'Notes','Analytics','Settings'].map((tabLabel) => {
                       const tab = tabLabel.startsWith('Pending') ? 'Pending' : tabLabel
                       const isActive = activeTab === tab
                       return (
@@ -905,7 +946,7 @@ function App() {
                 {/* Mobile Tabs */}
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontSize: '14px', color: '#a1a1aa', marginBottom: '8px' }}>Navigation</div>
-                  {['Dashboard',`Pending (${totalPendingCount})`,'Calendar','Analytics','Settings'].map((tabLabel) => {
+                  {['Dashboard',`Pending (${totalPendingCount})`,'Notes','Analytics','Settings'].map((tabLabel) => {
                     const tab = tabLabel.startsWith('Pending') ? 'Pending' : tabLabel
                     const isActive = activeTab === tab
                     return (
@@ -1415,6 +1456,8 @@ function App() {
                 </div>
               )}
             </div>
+          ) : activeTab === 'Notes' ? (
+            <NotesTab dailyNotes={dailyNotes} />
           ) : (
             <div style={{
               backgroundColor: '#111116',
