@@ -3,6 +3,7 @@ import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWe
 import { onAuthChange, logout } from './services/auth'
 import Login from './components/Login'
 import './App.css'
+import jsPDF from 'jspdf'
 
 function startOfDay(date) {
   const d = new Date(date)
@@ -445,10 +446,72 @@ function WeeklyGoals({ weekKey, goals, onChange, onPrev, onNext, isMobile = fals
 
 // Add NotesTab component to show all notes with their dates
 function NotesTab({ dailyNotes }) {
-  // Sort notes by date descending
   const notesArray = Object.entries(dailyNotes)
     .filter(([date, note]) => note && note.trim() !== '')
     .sort((a, b) => b[0].localeCompare(a[0]))
+
+  // PDF Export Handler
+  const handleExportPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4'
+    })
+    // Small header at top
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(0, 0, 0)
+    doc.text(
+      'Exported using https://multi-task-to-do.vercel.app/ — developed by Divyank Jain Singhvi',
+      60,
+      30,
+      { maxWidth: 520 }
+    )
+
+    // Watermark on every page
+    const watermark = 'Exported using https://multi-task-to-do.vercel.app/ — Divyank Jain Singhvi'
+    function addWatermark(doc) {
+      doc.saveGraphicsState()
+      doc.setFontSize(22)
+      doc.setTextColor(0, 0, 0)
+      doc.setFont('helvetica', 'bold')
+      doc.setGState(new doc.GState({ opacity: 0.08 }))
+      doc.text(watermark, 100, 400, { angle: -20, maxWidth: 400 })
+      doc.restoreGraphicsState()
+    }
+    addWatermark(doc)
+
+    let y = 60
+    notesArray.forEach(([date, note], idx) => {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(13)
+      doc.setTextColor(80, 80, 80)
+      doc.text(
+        new Date(date).toLocaleDateString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        40,
+        y
+      )
+      y += 16 // Reduce space for smaller font
+
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(11) // 50% of previous 14px size
+      doc.setTextColor(30, 30, 30)
+      const lines = doc.splitTextToSize(note, 480)
+      doc.text(lines, 60, y)
+      y += lines.length * 11 + 14 // Reduce line height for smaller font
+      if (y > 750 && idx < notesArray.length - 1) {
+        doc.addPage()
+        addWatermark(doc)
+        y = 60
+      }
+    })
+    doc.save('Notes_Export.pdf')
+  }
 
   return (
     <div style={{
@@ -458,7 +521,26 @@ function NotesTab({ dailyNotes }) {
       padding: '24px',
       minHeight: '300px'
     }}>
-      <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '16px', color: '#e6e6e9' }}>📝 All Notes</h2>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#e6e6e9', margin: 0 }}>
+          📝 Notes Export
+        </h2>
+        <button
+          className="btn"
+          onClick={handleExportPDF}
+          style={{
+            backgroundColor: '#6366f1',
+            color: 'white',
+            border: 'none',
+            padding: '8px 14px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            cursor: 'pointer'
+          }}
+        >
+          Export PDF
+        </button>
+      </div>
       {notesArray.length === 0 ? (
         <div style={{ color: '#c7c7cb', fontSize: '15px' }}>No notes found.</div>
       ) : (
@@ -470,7 +552,7 @@ function NotesTab({ dailyNotes }) {
               padding: '16px',
               border: '1px solid #22222a'
             }}>
-              <div style={{ fontSize: '14px', color: '#a1a1aa', marginBottom: '8px' }}>
+              <div style={{ fontSize: '14px', color: '#a1a1aa', marginBottom: '8px', fontWeight: 600 }}>
                 {new Date(date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </div>
               <div style={{ fontSize: '15px', color: '#e6e6e9', whiteSpace: 'pre-line' }}>
@@ -555,6 +637,21 @@ function App() {
     })
     return () => unsubscribe()
   }, [])
+
+  // Fetch all notes for user after login
+  useEffect(() => {
+    if (!user?.uid) return
+    getAllDays(user.uid).then((days) => {
+      // days is an object: { dateKey: { note: "...", tasks: {...} }, ... }
+      if (days) {
+        const notesObj = {}
+        Object.entries(days).forEach(([dateKey, data]) => {
+          notesObj[dateKey] = data.note || ''
+        })
+        setDailyNotes((prev) => ({ ...prev, ...notesObj }))
+      }
+    }).catch(() => {})
+  }, [user?.uid])
 
   const handleLogout = async () => {
     try {
