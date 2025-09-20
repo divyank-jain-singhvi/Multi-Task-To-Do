@@ -4,6 +4,7 @@ import { onAuthChange, logout } from './services/auth'
 import Login from './components/Login'
 import './App.css'
 import jsPDF from 'jspdf'
+import RepeatTaskDropdown from './components/RepeatTaskDropdown'
 
 function startOfDay(date) {
   const d = new Date(date)
@@ -173,21 +174,25 @@ function DigitalClock({ isMobile = false }) {
   )
 }
 
-function DailyTable({ dateKey, tasks, onChange, isMobile = false }) {
+function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }) {
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), [])
+  const [repeatHour, setRepeatHour] = useState(null)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
   return (
     <div className="table">
       <div className="table-head" style={{ 
-        gridTemplateColumns: isMobile ? '60px 1fr' : '100px 1fr',
+        gridTemplateColumns: isMobile ? '60px 1fr 60px' : '100px 1fr 80px',
         fontSize: isMobile ? '11px' : '12px'
       }}>
         <div className="table-hour">Hour</div>
         <div className="table-task">Task</div>
+        <div className="table-repeat">Repeat</div>
       </div>
       <div style={{ maxHeight: isMobile ? '400px' : '300px', overflow: 'auto' }}>
         {hours.map((h) => (
           <div key={h} className="table-row" style={{ 
-            gridTemplateColumns: isMobile ? '60px 1fr' : '100px 1fr'
+            gridTemplateColumns: isMobile ? '60px 1fr 60px' : '100px 1fr 80px'
           }}>
             <div className="table-hour table-cell" style={{ 
               fontSize: isMobile ? '11px' : '12px',
@@ -232,6 +237,45 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false }) {
                   }}
                 />
               </div>
+            </div>
+            <div className="table-repeat table-cell" style={{ textAlign: 'center' }}>
+              <button
+                style={{
+                  background: '#22222a',
+                  color: '#6366f1',
+                  border: 'none',
+                  borderRadius: '50%',
+                  padding: '8px',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(99,102,241,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto'
+                }}
+                title="Repeat this task on other dates"
+                onClick={() => {
+                  setRepeatHour(h)
+                  setDropdownOpen(true)
+                }}
+              >
+                <span role="img" aria-label="repeat" style={{ marginRight: '2px' }}>🔁</span>
+              </button>
+              {dropdownOpen && repeatHour === h && (
+                <RepeatTaskDropdown
+                  open={dropdownOpen}
+                  onClose={() => setDropdownOpen(false)}
+                  hourTaskText={tasks[h]?.text || ''}
+                  initialDate={dateKey}
+                  onSave={(selectedDates) => {
+                    setDropdownOpen(false)
+                    if (onRepeatTask) {
+                      onRepeatTask(h, tasks[h]?.text || '', selectedDates)
+                    }
+                  }}
+                />
+              )}
             </div>
           </div>
         ))}
@@ -858,6 +902,28 @@ function App() {
     prevUidRef.current = nextUid
   }, [user?.uid])
 
+  const handleRepeatTask = (hour, text, selectedDates) => {
+    if (!selectedDates || !selectedDates.length) return
+    setDailyTasks((prev) => {
+      const next = { ...prev }
+      selectedDates.forEach(date => {
+        const key = formatDateKey(date)
+        const dayTasks = next[key] || {}
+        dayTasks[hour] = { text, done: false }
+        next[key] = dayTasks
+      })
+      return next
+    })
+    // Save to Firebase for each date if user is logged in
+    if (user?.uid) {
+      selectedDates.forEach(date => {
+        const key = formatDateKey(date)
+        const dayData = { tasks: { ...(dailyTasks[key] || {}), [hour]: { text, done: false } }, note: dailyNotes[key] || '' }
+        saveDay(user.uid, key, dayData).catch(() => {})
+      })
+    }
+  }
+
   // SIMPLE FALLBACK - ALWAYS SHOW SOMETHING
   return (
     <div style={{ 
@@ -1348,6 +1414,7 @@ function App() {
                   tasks={dailyTasks[dateKey] || {}} 
                   onChange={(tasks) => setDailyTasks({ ...dailyTasks, [dateKey]: tasks })} 
                   isMobile={isMobile}
+                  onRepeatTask={handleRepeatTask}
                 />
               </div>
             </div>
@@ -1572,7 +1639,6 @@ function App() {
       )}
     </div>
   )
-
 }
 
 export default App
