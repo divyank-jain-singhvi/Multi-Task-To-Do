@@ -834,34 +834,34 @@ function App() {
     (pendingWeekly?.length || 0) + (allPending.weekly?.length || 0) +
     (pendingMonthly?.length || 0) + (allPending.monthly?.length || 0)
 
-  const toggleDailyDone = (hour) => {
-    const current = dailyTasks[todayDateKey] || {}
+  const toggleDailyDone = (hour, dateKey = todayDateKey) => {
+    const current = dailyTasks[dateKey] || {}
     const entry = current[hour] || { text: '', done: false }
     const next = { ...current, [hour]: { ...entry, done: true } }
-    setDailyTasks((prev) => ({ ...prev, [todayDateKey]: next }))
+    setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
     if (user?.uid) {
-      const dayData = { tasks: next, note: dailyNotes[todayDateKey] || '' }
-      saveDay(user.uid, todayDateKey, dayData).catch(() => {})
+      const dayData = { tasks: next, note: dailyNotes[dateKey] || '' }
+      saveDay(user.uid, dateKey, dayData).catch(() => {})
     }
   }
 
-  const toggleWeeklyDone = (index) => {
-    const list = (weeklyGoals[todayWeekKey] || []).slice()
+  const toggleWeeklyDone = (index, weekKey = todayWeekKey) => {
+    const list = (weeklyGoals[weekKey] || []).slice()
     const g = list[index] || { text: '', done: false }
     list[index] = { ...g, done: true }
-    setWeeklyGoals((prev) => ({ ...prev, [todayWeekKey]: list }))
+    setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
     if (user?.uid) {
-      saveWeek(user.uid, todayWeekKey, { goals: list }).catch(() => {})
+      saveWeek(user.uid, weekKey, { goals: list }).catch(() => {})
     }
   }
 
-  const toggleMonthlyDone = (index) => {
-    const list = (monthlyGoals[todayMonthKey] || []).slice()
+  const toggleMonthlyDone = (index, monthKey = todayMonthKey) => {
+    const list = (monthlyGoals[monthKey] || []).slice()
     const g = list[index] || { text: '', done: false }
     list[index] = { ...g, done: true }
-    setMonthlyGoals((prev) => ({ ...prev, [todayMonthKey]: list }))
+    setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
     if (user?.uid) {
-      saveMonth(user.uid, todayMonthKey, { goals: list }).catch(() => {})
+      saveMonth(user.uid, monthKey, { goals: list }).catch(() => {})
     }
   }
 
@@ -1487,11 +1487,7 @@ function App() {
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <input type="checkbox" onChange={() => {
-                                if (t.dateKey === todayDateKey) {
-                                  toggleDailyDone(t.hour)
-                                }
-                              }} />
+                              <input type="checkbox" onChange={() => toggleDailyDone(t.hour, t.dateKey)} />
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1546,7 +1542,7 @@ function App() {
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <input type="checkbox" onChange={() => { if (g.weekKey === todayWeekKey) toggleWeeklyDone(g.index) }} />
+                              <input type="checkbox" onChange={() => toggleWeeklyDone(g.index, g.weekKey)} />
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1596,7 +1592,7 @@ function App() {
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <input type="checkbox" onChange={() => { if (g.monthKey === todayMonthKey) toggleMonthlyDone(g.index) }} />
+                              <input type="checkbox" onChange={() => toggleMonthlyDone(g.index, g.monthKey)} />
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
