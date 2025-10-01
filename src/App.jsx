@@ -112,8 +112,8 @@ function CalendarMini({ date, onChange, isMobile = false }) {
         </button>
       </div>
       <div className="calendar-grid select-none">
-        {['S','M','T','W','T','F','S'].map((d) => (
-          <div key={d} className="dow" style={{ fontSize: isMobile ? '10px' : '12px' }}>{d}</div>
+        {['S','M','T','W','T','F','S'].map((d, idx) => (
+          <div key={`dow-${idx}`} className="dow" style={{ fontSize: isMobile ? '10px' : '12px' }}>{d}</div>
         ))}
         {cells.map((d, idx) => {
           const isToday = d && formatDateKey(new Date(date.getFullYear(), date.getMonth(), d)) === todayKey
@@ -238,21 +238,37 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
                 />
               </div>
             </div>
-            <div className="table-repeat table-cell" style={{ textAlign: 'center' }}>
+            <div className="table-repeat table-cell" style={{ 
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: isMobile ? '8px 4px' : '10px'
+            }}>
               <button
                 style={{
-                  background: '#22222a',
-                  color: '#6366f1',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
                   border: 'none',
-                  borderRadius: '50%',
-                  padding: '8px',
-                  fontSize: '18px',
+                  borderRadius: '8px',
+                  padding: isMobile ? '6px 10px' : '8px 12px',
+                  fontSize: isMobile ? '11px' : '12px',
+                  fontWeight: '500',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(99,102,241,0.08)',
+                  boxShadow: '0 2px 8px rgba(102,126,234,0.25)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto'
+                  gap: '4px',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102,126,234,0.35)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(102,126,234,0.25)'
                 }}
                 title="Repeat this task on other dates"
                 onClick={() => {
@@ -260,7 +276,8 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
                   setDropdownOpen(true)
                 }}
               >
-                <span role="img" aria-label="repeat" style={{ marginRight: '2px' }}>🔁</span>
+                <span role="img" aria-label="repeat">🔁</span>
+                {!isMobile && <span>Repeat</span>}
               </button>
               {dropdownOpen && repeatHour === h && (
                 <RepeatTaskDropdown
