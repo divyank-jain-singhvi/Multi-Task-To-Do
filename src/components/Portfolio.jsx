@@ -470,7 +470,7 @@ export default function Portfolio({ onLoginClick = () => {} }) {
 
       <main className="pf-main">
         <div className={`pf-tab-content${tabAnim ? ' ' + tabAnim : ''}`}>{renderTabContent()}</div>
-        <footer className="pf-footer">© {new Date().getFullYear()} Divyank Jain Singhvi — Portfolio Demo</footer>
+        <footer className="pf-footer">© {new Date().getFullYear()} Divyank Jain Singhvi — Portfolio</footer>
       </main>
     </div>
   )
