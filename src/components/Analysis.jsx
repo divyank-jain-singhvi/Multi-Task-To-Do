@@ -76,6 +76,8 @@ function Analysis({ user, isMobile = false }) {
   // Get all unique hourly tasks for the selected month
   const allHourlyTasks = useMemo(() => {
     const taskMap = new Map()
+    
+    // First pass: collect all tasks with their hours
     daysInMonth.forEach(({ dateKey }) => {
       const dayData = allDaysData[dateKey]
       if (dayData?.tasks) {
@@ -86,14 +88,17 @@ function Analysis({ user, isMobile = false }) {
               taskMap.set(key, {
                 hour: parseInt(hour),
                 text: task.text,
-                key
+                key,
+                originalHour: hour // Keep original hour string
               })
             }
           }
         })
       }
     })
-    return Array.from(taskMap.values()).sort((a, b) => a.hour - b.hour)
+    
+    return Array.from(taskMap.values())
+      .sort((a, b) => a.hour - b.hour || a.text.localeCompare(b.text))
   }, [allDaysData, daysInMonth])
 
   // Get weeks in selected year
@@ -181,15 +186,25 @@ function Analysis({ user, isMobile = false }) {
   // Calculate daily completion rates for graph
   const dailyCompletionData = useMemo(() => {
     return daysInMonth.map(({ dateKey, dayNumber }) => {
-      const dayData = allDaysData[dateKey]
-      if (!dayData?.tasks) return { day: dayNumber, completed: 0, total: 0, percentage: 0 }
-      
-      const tasks = Object.values(dayData.tasks).filter(task => task?.text && task.text.trim() !== '')
-      const completed = tasks.filter(task => task.done).length
-      const total = tasks.length
-      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
-      
-      return { day: dayNumber, completed, total, percentage }
+      try {
+        const dayData = allDaysData[dateKey]
+        if (!dayData?.tasks) return { day: dayNumber, completed: 0, total: 0, percentage: 0 }
+        
+        // Only count tasks that have text content
+        const tasks = Object.values(dayData.tasks).filter(task => task?.text && task.text.trim() !== '')
+        
+        // Count completed tasks (must have text and be marked done)
+        const completed = tasks.filter(task => task.done === true).length
+        const total = tasks.length
+        
+        // Calculate percentage based on tasks actually done vs total tasks
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
+        
+        return { day: dayNumber, completed, total, percentage }
+      } catch (err) {
+        console.warn('Error calculating daily completion:', err)
+        return { day: dayNumber, completed: 0, total: 0, percentage: 0 }
+      }
     })
   }, [allDaysData, daysInMonth])
 
@@ -225,15 +240,32 @@ function Analysis({ user, isMobile = false }) {
 
   // Check if task exists and is completed for a specific day
   const getTaskStatus = (taskKey, dateKey) => {
-    const dayData = allDaysData[dateKey]
-    if (!dayData?.tasks) return 'missing'
-    
-    const task = Object.values(dayData.tasks).find(t => 
-      t?.text && `${t.hour || '0'}:00 - ${t.text}` === taskKey
-    )
-    
-    if (!task) return 'missing'
-    return task.done ? 'completed' : 'pending'
+    try {
+      const dayData = allDaysData[dateKey]
+      if (!dayData?.tasks) return 'missing'
+      
+      // Parse task key into hour and text
+      const match = taskKey.match(/^(\d+):00 - (.+)$/)
+      if (!match) return 'missing'
+      
+      const [_, targetHour, targetText] = match
+      
+      // Check all tasks for this day to find a match
+      for (const [hour, task] of Object.entries(dayData.tasks)) {
+        // Skip invalid tasks
+        if (!task?.text || typeof task.text !== 'string') continue
+        
+        // Compare both hour and text, handling string/number hour formats
+        if (hour === targetHour && task.text.trim() === targetText.trim()) {
+          return task.done ? 'completed' : 'pending'
+        }
+      }
+      
+      return 'missing'
+    } catch (err) {
+      console.warn('Error checking task status:', err, { taskKey, dateKey })
+      return 'missing'
+    }
   }
 
   // Check if weekly goal exists and is completed for a specific week
@@ -425,9 +457,10 @@ function Analysis({ user, isMobile = false }) {
               </h4>
               
               <div style={{ 
-                height: isMobile ? '100px' : '120px',
+                height: isMobile ? '140px' : '160px',
                 position: 'relative',
-                width: '100%'
+                width: '100%',
+                marginLeft: '40px' // Space for Y-axis
               }}>
                 <svg
                   width="100%"
@@ -438,29 +471,56 @@ function Analysis({ user, isMobile = false }) {
                     left: 0
                   }}
                 >
-                  {/* Grid lines */}
+                  {/* Grid lines and Y-axis */}
                   <defs>
                     <pattern id="grid-daily" width="20" height="20" patternUnits="userSpaceOnUse">
                       <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#333" strokeWidth="0.5" opacity="0.3"/>
                     </pattern>
                   </defs>
-                  <rect width="100%" height="100%" fill="url(#grid-daily)" />
+                  
+                  {/* Background grid */}
+                  <rect x="40" width="calc(100% - 40px)" height="100%" fill="url(#grid-daily)" />
+                  
+                  {/* Y-axis and labels */}
+                  <line x1="40" y1="0" x2="40" y2="100%" stroke="#666" strokeWidth="1"/>
+                  {[0, 25, 50, 75, 100].map((value) => {
+                    const y = (100 - value) * ((isMobile ? 140 : 160) - 40) / 100
+                    return (
+                      <g key={value}>
+                        <line 
+                          x1="36" 
+                          y1={y} 
+                          x2="44" 
+                          y2={y} 
+                          stroke="#666" 
+                          strokeWidth="1"
+                        />
+                        <text
+                          x="32"
+                          y={y + 4}
+                          textAnchor="end"
+                          fontSize={isMobile ? "9px" : "10px"}
+                          fill="#a1a1aa"
+                        >
+                          {value}%
+                        </text>
+                      </g>
+                    )
+                  })}
                   
                   {/* Line chart */}
                   <path
                     d={(() => {
                       if (dailyCompletionData.length === 0) return ''
-                      const max = Math.max(...dailyCompletionData.map(d => d.total), 1)
-                      const height = parseInt(isMobile ? '100px' : '120px') - 40
+                      const height = (isMobile ? 140 : 160) - 40 // Total height minus bottom margin
                       const columnWidth = isMobile ? 35 : 40
                       const taskColumnWidth = isMobile ? 150 : 200
-                      const gap = 2 // Grid gap
+                      const yAxisOffset = 40 // X offset for y-axis
                       
                       let path = ''
                       dailyCompletionData.forEach((item, index) => {
-                        // Calculate x position to align with column center (no gap needed as CSS grid handles spacing)
-                        const x = taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                        const y = height - (item.total / max) * height
+                        const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
+                        const y = height - (item.percentage * height / 100) // Use percentage directly
                         if (index === 0) {
                           path += `M ${x} ${y}`
                         } else {
@@ -478,14 +538,15 @@ function Analysis({ user, isMobile = false }) {
                   
                   {/* Data points aligned with table columns */}
                   {dailyCompletionData.map((item, index) => {
-                    const max = Math.max(...dailyCompletionData.map(d => d.total), 1)
-                    const height = parseInt(isMobile ? '100px' : '120px') - 40
+                    const height = (isMobile ? 140 : 160) - 40
                     const columnWidth = isMobile ? 35 : 40
                     const taskColumnWidth = isMobile ? 150 : 200
+                    const yAxisOffset = 40
                     
-                    // Calculate x position to align with column center (no gap needed as CSS grid handles spacing)
-                    const x = taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                    const y = height - (item.total / max) * height
+                    const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
+                    const y = height - (item.percentage * height / 100) // Use percentage directly
+                    
+                    const textY = item.percentage > 90 ? y + 16 : y - 8 // Flip label position if near top
                     
                     return (
                       <g key={index}>
@@ -497,9 +558,20 @@ function Analysis({ user, isMobile = false }) {
                           stroke="#fff"
                           strokeWidth="1"
                         />
+                        {/* Task count badge */}
                         <text
                           x={x}
-                          y={y - 8}
+                          y={y - (item.percentage > 90 ? -24 : 20)}
+                          textAnchor="middle"
+                          fontSize={isMobile ? "8px" : "9px"}
+                          fill="#666"
+                        >
+                          {item.completed}/{item.total}
+                        </text>
+                        {/* Percentage */}
+                        <text
+                          x={x}
+                          y={textY}
                           textAnchor="middle"
                           fontSize={isMobile ? "9px" : "10px"}
                           fill="#a1a1aa"
@@ -671,9 +743,10 @@ function Analysis({ user, isMobile = false }) {
               </h4>
               
               <div style={{ 
-                height: isMobile ? '100px' : '120px',
+                height: isMobile ? '140px' : '160px',
                 position: 'relative',
-                width: '100%'
+                width: '100%',
+                marginLeft: '40px' // Space for Y-axis
               }}>
                 <svg
                   width="100%"
@@ -684,29 +757,56 @@ function Analysis({ user, isMobile = false }) {
                     left: 0
                   }}
                 >
-                  {/* Grid lines */}
+                  {/* Grid lines and Y-axis */}
                   <defs>
                     <pattern id="grid-weekly" width="20" height="20" patternUnits="userSpaceOnUse">
                       <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#333" strokeWidth="0.5" opacity="0.3"/>
                     </pattern>
                   </defs>
-                  <rect width="100%" height="100%" fill="url(#grid-weekly)" />
+                  
+                  {/* Background grid */}
+                  <rect x="40" width="calc(100% - 40px)" height="100%" fill="url(#grid-weekly)" />
+                  
+                  {/* Y-axis and labels */}
+                  <line x1="40" y1="0" x2="40" y2="100%" stroke="#666" strokeWidth="1"/>
+                  {[0, 25, 50, 75, 100].map((value) => {
+                    const y = (100 - value) * ((isMobile ? 140 : 160) - 40) / 100
+                    return (
+                      <g key={value}>
+                        <line 
+                          x1="36" 
+                          y1={y} 
+                          x2="44" 
+                          y2={y} 
+                          stroke="#666" 
+                          strokeWidth="1"
+                        />
+                        <text
+                          x="32"
+                          y={y + 4}
+                          textAnchor="end"
+                          fontSize={isMobile ? "9px" : "10px"}
+                          fill="#a1a1aa"
+                        >
+                          {value}%
+                        </text>
+                      </g>
+                    )
+                  })}
                   
                   {/* Line chart */}
                   <path
                     d={(() => {
                       if (weeklyCompletionData.length === 0) return ''
-                      const max = Math.max(...weeklyCompletionData.map(d => d.total), 1)
-                      const height = parseInt(isMobile ? '100px' : '120px') - 40
+                      const height = (isMobile ? 140 : 160) - 40
                       const columnWidth = isMobile ? 30 : 60
                       const taskColumnWidth = isMobile ? 120 : 200
-                      const gap = 2 // Grid gap
+                      const yAxisOffset = 40
                       
                       let path = ''
                       weeklyCompletionData.forEach((item, index) => {
-                        // Calculate x position to align with column center (no gap needed as CSS grid handles spacing)
-                        const x = taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                        const y = height - (item.total / max) * height
+                        const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
+                        const y = height - (item.percentage * height / 100) // Use percentage directly
                         if (index === 0) {
                           path += `M ${x} ${y}`
                         } else {
@@ -724,14 +824,15 @@ function Analysis({ user, isMobile = false }) {
                   
                   {/* Data points aligned with table columns */}
                   {weeklyCompletionData.map((item, index) => {
-                    const max = Math.max(...weeklyCompletionData.map(d => d.total), 1)
-                    const height = parseInt(isMobile ? '100px' : '120px') - 40
+                    const height = (isMobile ? 140 : 160) - 40
                     const columnWidth = isMobile ? 30 : 60
                     const taskColumnWidth = isMobile ? 120 : 200
+                    const yAxisOffset = 40
                     
-                    // Calculate x position to align with column center (no gap needed as CSS grid handles spacing)
-                    const x = taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                    const y = height - (item.total / max) * height
+                    const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
+                    const y = height - (item.percentage * height / 100)
+                    
+                    const textY = item.percentage > 90 ? y + 16 : y - 8 // Flip label position if near top
                     
                     return (
                       <g key={index}>
@@ -743,9 +844,20 @@ function Analysis({ user, isMobile = false }) {
                           stroke="#fff"
                           strokeWidth="1"
                         />
+                        {/* Goal count badge */}
                         <text
                           x={x}
-                          y={y - 8}
+                          y={y - (item.percentage > 90 ? -24 : 20)}
+                          textAnchor="middle"
+                          fontSize={isMobile ? "8px" : "9px"}
+                          fill="#666"
+                        >
+                          {item.completed}/{item.total}
+                        </text>
+                        {/* Percentage */}
+                        <text
+                          x={x}
+                          y={textY}
                           textAnchor="middle"
                           fontSize={isMobile ? "9px" : "10px"}
                           fill="#a1a1aa"
@@ -916,9 +1028,10 @@ function Analysis({ user, isMobile = false }) {
               </h4>
               
               <div style={{ 
-                height: isMobile ? '100px' : '120px',
+                height: isMobile ? '140px' : '160px',
                 position: 'relative',
-                width: '100%'
+                width: '100%',
+                marginLeft: '40px' // Space for Y-axis
               }}>
                 <svg
                   width="100%"
@@ -929,29 +1042,56 @@ function Analysis({ user, isMobile = false }) {
                     left: 0
                   }}
                 >
-                  {/* Grid lines */}
+                  {/* Grid lines and Y-axis */}
                   <defs>
                     <pattern id="grid-monthly" width="20" height="20" patternUnits="userSpaceOnUse">
                       <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#333" strokeWidth="0.5" opacity="0.3"/>
                     </pattern>
                   </defs>
-                  <rect width="100%" height="100%" fill="url(#grid-monthly)" />
+                  
+                  {/* Background grid */}
+                  <rect x="40" width="calc(100% - 40px)" height="100%" fill="url(#grid-monthly)" />
+                  
+                  {/* Y-axis and labels */}
+                  <line x1="40" y1="0" x2="40" y2="100%" stroke="#666" strokeWidth="1"/>
+                  {[0, 25, 50, 75, 100].map((value) => {
+                    const y = (100 - value) * ((isMobile ? 140 : 160) - 40) / 100
+                    return (
+                      <g key={value}>
+                        <line 
+                          x1="36" 
+                          y1={y} 
+                          x2="44" 
+                          y2={y} 
+                          stroke="#666" 
+                          strokeWidth="1"
+                        />
+                        <text
+                          x="32"
+                          y={y + 4}
+                          textAnchor="end"
+                          fontSize={isMobile ? "9px" : "10px"}
+                          fill="#a1a1aa"
+                        >
+                          {value}%
+                        </text>
+                      </g>
+                    )
+                  })}
                   
                   {/* Line chart */}
                   <path
                     d={(() => {
                       if (monthlyCompletionData.length === 0) return ''
-                      const max = Math.max(...monthlyCompletionData.map(d => d.total), 1)
-                      const height = parseInt(isMobile ? '100px' : '120px') - 40
+                      const height = (isMobile ? 140 : 160) - 40
                       const columnWidth = isMobile ? 25 : 60
                       const taskColumnWidth = isMobile ? 120 : 200
-                      const gap = 2 // Grid gap
+                      const yAxisOffset = 40
                       
                       let path = ''
                       monthlyCompletionData.forEach((item, index) => {
-                        // Calculate x position to align with column center (no gap needed as CSS grid handles spacing)
-                        const x = taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                        const y = height - (item.total / max) * height
+                        const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
+                        const y = height - (item.percentage * height / 100) // Use percentage directly
                         if (index === 0) {
                           path += `M ${x} ${y}`
                         } else {
@@ -969,14 +1109,15 @@ function Analysis({ user, isMobile = false }) {
                   
                   {/* Data points aligned with table columns */}
                   {monthlyCompletionData.map((item, index) => {
-                    const max = Math.max(...monthlyCompletionData.map(d => d.total), 1)
-                    const height = parseInt(isMobile ? '100px' : '120px') - 40
+                    const height = (isMobile ? 140 : 160) - 40
                     const columnWidth = isMobile ? 25 : 60
                     const taskColumnWidth = isMobile ? 120 : 200
+                    const yAxisOffset = 40
                     
-                    // Calculate x position to align with column center (no gap needed as CSS grid handles spacing)
-                    const x = taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                    const y = height - (item.total / max) * height
+                    const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
+                    const y = height - (item.percentage * height / 100)
+                    
+                    const textY = item.percentage > 90 ? y + 16 : y - 8 // Flip label position if near top
                     
                     return (
                       <g key={index}>
@@ -988,9 +1129,20 @@ function Analysis({ user, isMobile = false }) {
                           stroke="#fff"
                           strokeWidth="1"
                         />
+                        {/* Goal count badge */}
                         <text
                           x={x}
-                          y={y - 8}
+                          y={y - (item.percentage > 90 ? -24 : 20)}
+                          textAnchor="middle"
+                          fontSize={isMobile ? "8px" : "9px"}
+                          fill="#666"
+                        >
+                          {item.completed}/{item.total}
+                        </text>
+                        {/* Percentage */}
+                        <text
+                          x={x}
+                          y={textY}
                           textAnchor="middle"
                           fontSize={isMobile ? "9px" : "10px"}
                           fill="#a1a1aa"

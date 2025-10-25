@@ -1,0 +1,225 @@
+\documentclass[letterpaper,12pt]{extarticle}
+\renewcommand\normalsize{\fontsize{12}{14}\selectfont}
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{enumitem}
+\usepackage[colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue,
+            citecolor = blue,
+            anchorcolor = blue]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-5pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+
+\hypersetup{pdfborder = 0 0 0}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.6in}
+\addtolength{\evensidemargin}{-0.6in}
+\addtolength{\textwidth}{1.19in}
+\addtolength{\topmargin}{-.7in}
+\addtolength{\textheight}{1.4in}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+% commands
+\newcommand{\resumeItem}[1]{\item\small{#1 \vspace{-2pt}}}
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+
+\begin{document}
+
+%-------------------- Header --------------------
+\begin{center}
+    {\Huge \scshape DIVYANK JAIN SINGHVI} \\ \vspace{8pt}
+    \small
+    Phone: (+91) 8905525623 ~ Gmail:
+    \href{mailto:divyanksinghvi@gmail.com}{divyanksinghvi@gmail.com} ~ LinkedIn:
+    \href{https://www.linkedin.com/in/divyank-jain-singhvi/}{linkedin.com/in/divyank-jain-singhvi} ~\\
+    Github: \href{https://github.com/divyank-jain-singhvi}{github.com/divyank-jain-singhvi} \\
+\end{center}
+\vspace{-12}
+%-------------------- Summary / Objective --------------------
+\section{Summary}
+\small{
+Automation-focused Software Engineer with \textbf{1+ years of hands-on experience} in Python, VBA, and test automation across rail and software domains. Skilled in building intelligent automation pipelines, developing APIs (Flask, FastAPI, Django), and optimizing document generation and testing workflows. Experienced in parsing complex data (XML, logs, Wireshark) and managing ALM tools like Polarion for process automation and system traceability. Proven success in reducing documentation and testing effort by up to \textbf{70\%} through end-to-end automation at Alstom and Titagarh Rail Systems. Proficient in AI/ML (NLP, Transformers, FAISS), IoT, Real-time Data Streaming, and cloud integrations, with strong problem-solving and data-driven development skills. Passionate about creating scalable, efficient, and real-world automation solutions that bridge software engineering and industrial systems.
+}
+\vspace{-6pt}
+
+%-------------------- Education --------------------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Dayananda Sagar University, Bangalore}{July 2021 -- July 2025}
+      {B.Tech in Computer Science and Engineering}{GPA: 8.56 / 10}
+  \resumeSubHeadingListEnd
+\vspace{-12pt}
+
+%--------------------  Technical Skills --------------------
+\section{Technical Skills}
+\vspace{3pt}
+\small
+\textbf{Languages:} Python (Flask, FastAPI, Django), C, JavaScript, React, Arduino, VBA \\
+% \textbf{Web/Frontend:} HTML5, CSS3, React, Tailwind, Bootstrap \\
+\textbf{Data \& AI/ML:} Pandas, Numpy, Matplotlib, NLP (Transformers, FAISS, LangChain) \\
+\textbf{Database:} Firebase, JSON, Pickle (PKL), Vector Storage \\
+\textbf{Dev Tools:} Git/GitHub, Exe Packaging \\
+\textbf{OS \& Networking:} Memory Management, Wireshark, TCP/IP \\
+\textbf{Automation:} Python Scripts, VBA (Excel/Word), PDF/XML Parsing, Polarion Admin \\
+% \textbf{Programming:} DSA, OOP, Compiler, System Programming \\
+\textbf{Cloud/Deployment:} SVN, IoT, Real-time Data Streaming, ThingSpeak\\
+\textbf{Other Skills:} Prompt Engineering (AI/LLMs), Hackathons, Presentations
+
+%-------------------- Experience --------------------
+\section{Experience}
+\resumeSubHeadingListStart
+
+\resumeSubheading
+    {\href{https://drive.google.com/drive/folders/1K_3Hu7JghUZs-4zmx155149FQ7AIxlAL}{Graduate Engineer Trainee $|$ Titagarh Rail Systems}}{January 2025 -- Present}
+    {"TCMS Software and Network Engineer"}{Bangalore, India}
+     % mix-air
+  \resumeItemListStart
+    \resumeItem{Automated Excel/Word workflows (brake calculation, heat load) using VBA, cutting manual effort by 70\%.}
+    \resumeItem{Designed hybrid tools converting raw metrics to customer-ready word document deliverables, decreased 60\% effort.}
+    \resumeItem{Managing polarion tool as administration and developing  automation script in the tool decreased 20\% manual effort}
+    \resumeItem{Created cost and functionality analysis slides and prototype project for SVN server implementation.}
+    \resumeItem{\textbf{Impact:} Reduced total time consumption of writing document and structuring by 30\%}
+  \resumeItemListEnd
+
+  
+  \resumeSubheading
+    { \href{https://drive.google.com/file/d/1-lhVWpXzMn9Qw6NZnoulHODf_emEcZOW/view?usp=drivesdk}{Automation Test Engineer Intern $|$ Alstom} }{August 2024 -- January 2025}
+    {“System Test Automation Developer”}{Bangalore, India}
+  \resumeItemListStart
+    \resumeItem{Developed python automation scripts for 11 metro projects' system testing across 16 scenarios.}
+    \resumeItem{Parsed XML Data and Wireshark Network packet captures for live automating report generation and testing.}
+    \resumeItem{Packaged python tools into a standalone .exe for the validation Team 2\% work efficiency increased.}
+    \resumeItem{\textbf{Impact:} Reduced test report generation and validation time from 2 months to 1 week.}
+    % \resumeItem{Live wireshark log analysis across 4 systems using Flask API}
+  \resumeItemListEnd
+
+  
+
+\resumeSubHeadingListEnd
+\vspace{-12pt}
+
+%-------------------- Projects --------------------
+\section{Projects}
+\resumeSubHeadingListStart
+
+\resumeProjectHeading
+{\textbf{AI-PDF Trainer} $|$ \emph{Python, Flask, NLP, React}}{June 2024 -- August 2024}
+\resumeItemListStart
+\resumeItem{A Python + Flask web app enabling users to upload PDFs and query them via an NLP-powered chatbot.}
+\resumeItem{Integrated embeddings with FAISS vector search, reducing query latency using PKL local file in server \textbf{10\%}.}
+\resumeItem{Integrated "sentence-transformers/all-MiniLM-L6-v2" mode for context-based answers, with 1000 chunks and 200 overlaps.}
+\resumeItem{Deployed {\href{https://github.com/divyank-jain-singhvi/AI-PDF-Trainer-backend}{https://github.com/divyank-jain-singhvi/AI-PDF-Trainer-backend}}}
+\resumeItemListEnd
+\vspace{-12pt}
+\resumeProjectHeading
+{\textbf{LingoBridge AI} $|$ \emph{Transformer for language translation model, React}}{January 2024 -- July 2025}
+\resumeItemListStart
+\resumeItem{Built custom transformer-based translation model to minimize bias across multilingual datasets.}
+\resumeItem{Trained on 1M parameters, achieving \textbf{81.27\% accuracy} and reducing bias by \textbf{13\%}.}
+\resumeItem{ Optimized GPU training pipeline, reducing training time from 3 days to \textbf{24 hours}.}
+\resumeItem{Repository \& report: {\href{https://github.com/divyank-jain-singhvi/lingo-bridge-Ai}{https://github.com/divyank-jain-singhvi/lingo-bridge-Ai}} }
+\resumeItemListEnd
+% \vspace{-12pt}
+% \resumeProjectHeading
+% {\textbf{Custom Compiler – Python + React}}{October 2023 -- November 2023}
+% \resumeItemListStart
+% \resumeItem{Implemented lexical analysis, parsing, of Pass2-SIC/XE Algorithem converts assembly instruction to machine Code.}
+% \resumeItem{ensures that almost every valid SIC/XE mnemonic is translated correctly \textbf{99\%}.}
+% \resumeItem{Repository: {\href{https://github.com/divyank-jain-singhvi/pass1-pass2-compiler-backend}{https://github.com/divyank-jain-singhvi/pass1-pass2-compiler-backend}}}
+% \resumeItemListEnd
+\vspace{-12pt}
+\resumeProjectHeading
+  {\textbf{Background Audio Voice Cancellation Tool} $|$ \emph{Python, Signal Processing}}{October 2024 -- December 2024}
+  \resumeItemListStart
+    \resumeItem{Built an audio processing tool in \textbf{python} achieving \textbf{65\% reduction} in background noise across multiple test datasets.}
+    \resumeItem{Implemented custom signal-processing algorithms with \textbf{NumPy \& PyDub}, improving speech-to-noise ratio by \textbf{40\%}.}
+    \resumeItem{Optimized tool to support \textbf{3+ audio formats} (.wav, .mp3), reducing preprocessing time by \textbf{30\%}.}
+    \resumeItem{Demonstrated applications in \textbf{podcast editing, transcription, and voice recognition}, enhancing word detection accuracy by \textbf{25\%}.}
+    \resumeItem{Repository: \href{https://github.com/divyank-jain-singhvi/background-audio-voice-cancelation-tool}{https://github.com/divyank-jain-singhvi/background-audio-voice-cancelation-tool}}
+  \resumeItemListEnd
+
+\vspace{-12pt}
+\resumeProjectHeading
+{\textbf{Smart Mining Helmet} $|$ \emph{IoT, Python}}{February 2024 -- March 2024}
+\resumeItemListStart
+\resumeItem{Engineered helmet with GPS, DHT11, and MQ-2 sensors for real-time safety monitoring of miners.}
+\resumeItem{Streamed data every second to cloud; integrated Folium maps for localization.}
+\resumeItem{Trained neural network (ReLU + Softmax) achieving live data collection with \textbf{92\% accuracy} in hazard prediction.}
+\resumeItem{Won 3\textsuperscript{rd} place in deloitte-sponsored hackathon. \href{https://github.com/divyank-jain-singhvi/Cole-miner-safety-IOT}{https://github.com/divyank-jain-singhvi/Cole-miner-safety-IOT}{}}
+\resumeItemListEnd
+
+\resumeSubHeadingListEnd
+\vspace{-12pt}
+
+
+\section{Certifications}
+
+\begin{itemize}[leftmargin=0.1in, itemsep=0pt]
+\item \textbf{Cloud \& AI/ML} — \href{https://drive.google.com/drive/folders/1g6FJCa5f4cmsbwvxmUMNODVbHKczKvPo}{[All]}:
+AWS Generative AI, AWSOME Day, Innovative Conf., OpenCV Face Recog., TensorFlow \& Keras
+\item \textbf{Programming \& Development} — \href{https://drive.google.com/drive/folders/1kS088zOcAXovoH1xz_KrdklaXWPbqm7h}{[All]}:
+Python (Udemy, VOIS), Full Stack Dev, Hackathon Wins (\href{https://drive.google.com/file/d/1KHxg8Jbp0xMlsaowjq2RVlT8DKJxG7bh/view?usp=drivesdk}{Drive})
+\item \textbf{Professional Skills} — \href{https://drive.google.com/drive/folders/1Twhnp6he43yt1EnC24PqMvDnOKUIDD-I}{[All]}:
+Business Presentation, Public Speaking, Time Management
+\item \textbf{Additional Participation} — \href{https://drive.google.com/drive/folders/1s_P44N97c1ePxI4YLHGTEmC2hO9afN8M}{[All]}:
+ACM, AI/ML \& JS Workshops, \href{https://drive.google.com/file/d/1YVVz6UK3Bsega0FxMqmziQvTGDhD0fbD/view?usp=drivesdk}{Deloitte}, Treasure Hunt
+\end{itemize}
+
+
+%-------------------- Declaration --------------------
+\section{Declaration}
+\small{I hereby declare that the information provided above is true and accurate to the best of my knowledge. I take full responsibility for the correctness and authenticity of the details shared in this resume.
+\vspace{6pt}
+\begin{flushright}
+\textbf{(Divyank Jain Singhvi)} \\
+Bangalore, India
+\end{flushright}
+
+
+\end{document}

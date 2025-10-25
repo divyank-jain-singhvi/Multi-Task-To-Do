@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWeek, getAllDays, getAllWeeks, getAllMonths, subscribeAllDays, subscribeAllWeeks, subscribeAllMonths } from './services/realtime'
 import { onAuthChange, logout } from './services/auth'
 import Login from './components/Login'
+import Portfolio from './components/Portfolio'
 import Analysis from './components/Analysis'
 import './App.css'
 import jsPDF from 'jspdf'
@@ -641,6 +642,7 @@ function App() {
   const [allPending, setAllPending] = useState({ daily: [], weekly: [], monthly: [] })
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
   // Pending page UI controls
   const [isDailyOpen, setIsDailyOpen] = useState(true)
   const [isWeeklyOpen, setIsWeeklyOpen] = useState(true)
@@ -969,14 +971,21 @@ function App() {
       color: '#e6e6e9',
       padding: '20px'
     }}>
-      {!authReady || !user || suppressDashboard ? (
-        <div style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <Login />
+      {/* Show a polished portfolio landing for unauthenticated users. Clicking Login opens the Login view. */}
+      {!authReady ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+          <div style={{ color: '#9ca3af' }}>Loading…</div>
+        </div>
+      ) : !user ? (
+        <div>
+          {!showLogin ? (
+            <Portfolio onLoginClick={() => setShowLogin(true)} />
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <Login />
+              <button onClick={() => setShowLogin(false)} style={{ marginTop: 12, background: 'transparent', border: 'none', color: '#9ca3af', cursor: 'pointer' }}>Back to Portfolio</button>
+            </div>
+          )}
         </div>
       ) : (
         <div>
