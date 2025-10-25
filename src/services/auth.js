@@ -80,6 +80,8 @@ export async function logout() {
   try {
     await signOut(auth)
     console.log('User signed out successfully')
+    // Redirect to portfolio page after logout
+    window.location.href = '/'
   } catch (error) {
     console.error('Logout error:', error)
     throw error

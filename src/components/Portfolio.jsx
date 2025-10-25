@@ -15,6 +15,7 @@ const NAV_TABS = [
 export default function Portfolio({ onLoginClick = () => {} }) {
   const [selectedTab, setSelectedTab] = useState('home')
   const [tabAnim, setTabAnim] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const lampRef = useRef(null)
   const gearRef = useRef(null)
 
@@ -416,6 +417,8 @@ export default function Portfolio({ onLoginClick = () => {} }) {
     <div className="pf-root">
       <header className="pf-header">
         <div className="pf-brand">Divyank<span className="pf-dot">.</span></div>
+        
+        {/* Desktop Navigation */}
         <nav className="pf-nav">
           {NAV_TABS.map(tab => (
             <button
@@ -428,8 +431,40 @@ export default function Portfolio({ onLoginClick = () => {} }) {
             </button>
           ))}
         </nav>
+
         <div className="pf-actions">
           <button className="pf-login" onClick={onLoginClick}>Login</button>
+          {/* Mobile Navigation Toggle */}
+          <button 
+            className="pf-mobile-nav-toggle" 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {isMenuOpen ? '×' : '☰'}
+          </button>
+        </div>
+
+        {/* Mobile Navigation Panel */}
+        <div className={`pf-mobile-nav${isMenuOpen ? ' active' : ''}`}>
+          {NAV_TABS.map(tab => (
+            <button
+              key={tab.key}
+              className={`pf-tab${selectedTab === tab.key ? ' pf-tab-active' : ''}`}
+              onClick={() => {
+                handleTabClick(tab.key)
+                setIsMenuOpen(false)
+              }}
+              aria-current={selectedTab === tab.key ? 'page' : undefined}
+            >
+              {tab.label}
+            </button>
+          ))}
+          <button className="pf-login" onClick={() => {
+            onLoginClick()
+            setIsMenuOpen(false)
+          }}>
+            Login
+          </button>
         </div>
       </header>
 

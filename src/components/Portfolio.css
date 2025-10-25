@@ -238,6 +238,10 @@
   gap:20px;
   padding:24px 40px;
   backdrop-filter: blur(6px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(11,11,15,0.95);
 }
 .pf-brand{font-weight:700;font-size:20px;letter-spacing:0.2px}
 .pf-dot{color:#7c3aed}
@@ -245,8 +249,94 @@
 .pf-tab{background:transparent;color:#c7c7cb;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px}
 .pf-tab:hover{background:rgba(255,255,255,0.04);color:#fff;transform:translateY(-2px)}
 .pf-tab-active{background:linear-gradient(90deg,#6366f1 60%,#22d3ee 100%);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,0.10);font-weight:700;}
-.pf-actions{display:flex;gap:8px}
-.pf-login{background:linear-gradient(135deg,#6366f1,#22d3ee);border:none;color:white;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+.pf-actions{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-left:auto;
+  height: 42px; /* Fixed height for consistent alignment */
+}
+.pf-login{
+  background:linear-gradient(135deg,#6366f1,#22d3ee);
+  border:none;
+  color:white;
+  padding:10px 16px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile Navigation */
+.pf-mobile-nav-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+  order: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pf-mobile-nav-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.pf-mobile-nav {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(135deg, rgba(11,11,15,0.98) 0%, rgba(23,23,35,0.98) 100%);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 80px 24px 24px;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  transition: right 0.3s ease-in-out;
+  box-shadow: -4px 0 25px rgba(0,0,0,0.3);
+  -webkit-overflow-scrolling: touch;
+}
+
+.pf-mobile-nav.active {
+  right: 0;
+}
+
+.pf-mobile-nav .pf-tab {
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+  font-size: 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+}
+
+.pf-mobile-nav .pf-tab-active {
+  background: linear-gradient(90deg,#6366f1 60%,#22d3ee 100%);
+}
+
+.pf-mobile-nav .pf-login {
+  margin-top: 16px;
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  text-align: center;
+}
 
 .pf-main{padding:40px}
 .pf-tab-content{transition:opacity 0.4s cubic-bezier(.4,0,.2,1),transform 0.4s cubic-bezier(.4,0,.2,1);will-change:opacity,transform;}
@@ -402,33 +492,91 @@
 .pf-footer{text-align:center;color:#9ca3af;margin-top:44px;padding:24px}
 
 /* responsive adjustments */
-@media (max-width:900px){
-  .pf-header{padding:18px}
-  .pf-hero{flex-direction:column;align-items:flex-start}
-  .pf-cards{width:100%;justify-content:space-between}
-  /* On medium screens reduce columns to 3 in the projects grid */
-  .pf-card{width:calc(33% - 12px)}
-  .pf-cards-grid{grid-template-columns: repeat(3, minmax(0, 1fr));}
-}
-
-@media (max-width:520px){
-  .pf-nav{display:none}
-  .pf-title{font-size:28px}
-  .pf-card{height:130px;width:150px}
-  .pf-cards-grid{grid-template-columns: repeat(1, minmax(0, 1fr));}
-}
-
 @media (max-width:1200px) {
   /* 4 columns for slightly narrower screens */
   .pf-cards-grid{grid-template-columns: repeat(4, minmax(0, 1fr));}
+  .pf-header{padding:20px 24px;}
 }
 
-@media (max-width:1000px) and (min-width:901px) {
+@media (max-width:1000px) {
   /* 3 columns in a small desktop range */
   .pf-cards-grid{grid-template-columns: repeat(3, minmax(0, 1fr));}
+  .pf-hero-inner{max-width:100%;}
+  .pf-title{font-size:36px;}
+  .pf-main{padding:24px;}
 }
 
-@media (max-width:700px) and (min-width:521px) {
-  /* 2 columns for small tablets */
+@media (max-width:768px) {
+  /* Tablet adjustments */
   .pf-cards-grid{grid-template-columns: repeat(2, minmax(0, 1fr));}
+  .pf-header{
+    padding:12px 16px;
+    gap: 12px;
+  }
+  .pf-nav{display:none;}
+  .pf-mobile-nav-toggle{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pf-mobile-nav.active{display:flex;}
+  .pf-hero{flex-direction:column;align-items:flex-start;gap:32px;}
+  .pf-cards{width:100%;}
+  .pf-section{padding:24px 20px;}
+  .pf-title{font-size:32px;line-height:1.2;}
+  
+  /* Improve mobile actions alignment */
+  .pf-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .pf-login, .pf-mobile-nav-toggle {
+    height: 42px;
+  }
+  
+  /* Adjust skills section for mobile */
+  .pf-skills-list{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+  }
+  .pf-cert-grid{
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width:480px) {
+  /* Mobile phone adjustments */
+  .pf-cards-grid{grid-template-columns: 1fr;}
+  .pf-header{padding:12px 16px;}
+  .pf-main{padding:16px 12px;}
+  .pf-title{font-size:28px;}
+  .pf-sub{font-size:15px;}
+  .pf-section{padding:20px 16px;}
+  .pf-blog-card{padding:16px;}
+  
+  /* Adjust hero cards for mobile */
+  .pf-hero .pf-cards{
+    flex-direction: column;
+    width: 100%;
+  }
+  .pf-hero .pf-card{
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  
+  /* Make contact links full width */
+  .pf-contact-link{
+    padding: 16px;
+    font-size: 15px;
+  }
+  
+  /* Adjust card sizing for better mobile view */
+  .pf-cards-grid .pf-card{
+    height: auto;
+    min-height: 140px;
+  }
 }

@@ -79,8 +79,26 @@ function Login() {
     }
   }
 
+  // This ensures we always redirect to the home page correctly
+  const handleBackToPortfolio = () => {
+    window.location.href = window.location.origin + window.location.pathname;
+  }
+
   return (
     <div className="auth-container">
+      <nav className="auth-nav">
+        <button 
+          onClick={handleBackToPortfolio}
+          className="auth-back-button"
+          aria-label="Back to Portfolio"
+        >
+          ← Back to Portfolio
+        </button>
+        <div className="auth-brand">
+          To-Do<span>.</span>
+        </div>
+      </nav>
+      
       <div className="auth-card">
         <div className="auth-header">
           <h1>To-Do App</h1>
