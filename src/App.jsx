@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWeek, getAllDays, getAllWeeks, getAllMonths, subscribeAllDays, subscribeAllWeeks, subscribeAllMonths } from './services/realtime'
 import { onAuthChange, logout } from './services/auth'
 import Login from './components/Login'
+import Analysis from './components/Analysis'
 import './App.css'
 import jsPDF from 'jspdf'
 import RepeatTaskDropdown from './components/RepeatTaskDropdown'
@@ -941,6 +942,25 @@ function App() {
     }
   }
 
+  // Navigation functions for pending tasks
+  const navigateToDate = (dateKey) => {
+    const [year, month, day] = dateKey.split('-').map(Number)
+    setSelectedDate(new Date(year, month - 1, day))
+    setActiveTab('Dashboard')
+  }
+
+  const navigateToWeek = (weekKey) => {
+    const [year, month, day] = weekKey.split('-').map(Number)
+    setSelectedDate(new Date(year, month - 1, day))
+    setActiveTab('Dashboard')
+  }
+
+  const navigateToMonth = (monthKey) => {
+    const [year, month] = monthKey.split('-').map(Number)
+    setSelectedDate(new Date(year, month - 1, 1))
+    setActiveTab('Dashboard')
+  }
+
   // SIMPLE FALLBACK - ALWAYS SHOW SOMETHING
   return (
     <div style={{ 
@@ -1509,17 +1529,85 @@ function App() {
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#9ca3af', fontSize: '12px' }}>
-                                  <span>{t.dateKey}</span>
+                                  <button
+                                    onClick={() => navigateToDate(t.dateKey)}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#6366f1',
+                                      cursor: 'pointer',
+                                      textDecoration: 'underline',
+                                      fontSize: '12px',
+                                      padding: '0'
+                                    }}
+                                    title="Go to this date"
+                                  >
+                                    {t.dateKey}
+                                  </button>
                                   <span>•</span>
                                   <span>{String(t.hour).padStart(2,'0')}:00</span>
                                 </div>
-                                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.text}</div>
+                                <button
+                                  onClick={() => navigateToDate(t.dateKey)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#e6e6e9',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    fontSize: '14px',
+                                    padding: '0',
+                                    width: '100%'
+                                  }}
+                                  title="Go to this date"
+                                >
+                                  {t.text}
+                                </button>
                               </div>
                             ) : (
                               <>
-                                <div className="table-hour table-cell" style={{ whiteSpace: 'nowrap' }}>{t.dateKey}</div>
+                                <button
+                                  onClick={() => navigateToDate(t.dateKey)}
+                                  className="table-hour table-cell"
+                                  style={{ 
+                                    whiteSpace: 'nowrap',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#6366f1',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    fontSize: '12px',
+                                    padding: '0',
+                                    textAlign: 'left'
+                                  }}
+                                  title="Go to this date"
+                                >
+                                  {t.dateKey}
+                                </button>
                                 <div className="table-hour table-cell" style={{ whiteSpace: 'nowrap' }}>{String(t.hour).padStart(2,'0')}:00</div>
-                                <div className="table-task table-cell" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.text}</div>
+                                <button
+                                  onClick={() => navigateToDate(t.dateKey)}
+                                  className="table-task table-cell"
+                                  style={{ 
+                                    whiteSpace: 'nowrap', 
+                                    overflow: 'hidden', 
+                                    textOverflow: 'ellipsis',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#e6e6e9',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    padding: '0',
+                                    textAlign: 'left',
+                                    width: '100%'
+                                  }}
+                                  title="Go to this date"
+                                >
+                                  {t.text}
+                                </button>
                               </>
                             )}
                           </div>
@@ -1563,13 +1651,82 @@ function App() {
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <div style={{ color: '#9ca3af', fontSize: '12px' }}>{g.weekKey}</div>
-                                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.text}</div>
+                                <button
+                                  onClick={() => navigateToWeek(g.weekKey)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#6366f1',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    fontSize: '12px',
+                                    padding: '0',
+                                    textAlign: 'left'
+                                  }}
+                                  title="Go to this week"
+                                >
+                                  {g.weekKey}
+                                </button>
+                                <button
+                                  onClick={() => navigateToWeek(g.weekKey)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#e6e6e9',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    fontSize: '14px',
+                                    padding: '0',
+                                    width: '100%'
+                                  }}
+                                  title="Go to this week"
+                                >
+                                  {g.text}
+                                </button>
                               </div>
                             ) : (
                               <>
-                                <div className="table-hour table-cell" style={{ whiteSpace: 'nowrap' }}>{g.weekKey}</div>
-                                <div className="table-task table-cell" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.text}</div>
+                                <button
+                                  onClick={() => navigateToWeek(g.weekKey)}
+                                  className="table-hour table-cell"
+                                  style={{ 
+                                    whiteSpace: 'nowrap',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#6366f1',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    fontSize: '12px',
+                                    padding: '0',
+                                    textAlign: 'left'
+                                  }}
+                                  title="Go to this week"
+                                >
+                                  {g.weekKey}
+                                </button>
+                                <button
+                                  onClick={() => navigateToWeek(g.weekKey)}
+                                  className="table-task table-cell"
+                                  style={{ 
+                                    whiteSpace: 'nowrap', 
+                                    overflow: 'hidden', 
+                                    textOverflow: 'ellipsis',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#e6e6e9',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    padding: '0',
+                                    textAlign: 'left',
+                                    width: '100%'
+                                  }}
+                                  title="Go to this week"
+                                >
+                                  {g.text}
+                                </button>
                               </>
                             )}
                           </div>
@@ -1613,13 +1770,82 @@ function App() {
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                <div style={{ color: '#9ca3af', fontSize: '12px' }}>{g.monthKey}</div>
-                                <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.text}</div>
+                                <button
+                                  onClick={() => navigateToMonth(g.monthKey)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#6366f1',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    fontSize: '12px',
+                                    padding: '0',
+                                    textAlign: 'left'
+                                  }}
+                                  title="Go to this month"
+                                >
+                                  {g.monthKey}
+                                </button>
+                                <button
+                                  onClick={() => navigateToMonth(g.monthKey)}
+                                  style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#e6e6e9',
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    fontSize: '14px',
+                                    padding: '0',
+                                    width: '100%'
+                                  }}
+                                  title="Go to this month"
+                                >
+                                  {g.text}
+                                </button>
                               </div>
                             ) : (
                               <>
-                                <div className="table-hour table-cell" style={{ whiteSpace: 'nowrap' }}>{g.monthKey}</div>
-                                <div className="table-task table-cell" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{g.text}</div>
+                                <button
+                                  onClick={() => navigateToMonth(g.monthKey)}
+                                  className="table-hour table-cell"
+                                  style={{ 
+                                    whiteSpace: 'nowrap',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#6366f1',
+                                    cursor: 'pointer',
+                                    textDecoration: 'underline',
+                                    fontSize: '12px',
+                                    padding: '0',
+                                    textAlign: 'left'
+                                  }}
+                                  title="Go to this month"
+                                >
+                                  {g.monthKey}
+                                </button>
+                                <button
+                                  onClick={() => navigateToMonth(g.monthKey)}
+                                  className="table-task table-cell"
+                                  style={{ 
+                                    whiteSpace: 'nowrap', 
+                                    overflow: 'hidden', 
+                                    textOverflow: 'ellipsis',
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#e6e6e9',
+                                    cursor: 'pointer',
+                                    fontSize: '14px',
+                                    padding: '0',
+                                    textAlign: 'left',
+                                    width: '100%'
+                                  }}
+                                  title="Go to this month"
+                                >
+                                  {g.text}
+                                </button>
                               </>
                             )}
                           </div>
@@ -1635,6 +1861,8 @@ function App() {
             </div>
           ) : activeTab === 'Notes' ? (
             <NotesTab dailyNotes={dailyNotes} />
+          ) : activeTab === 'Analytics' ? (
+            <Analysis user={user} isMobile={isMobile} />
           ) : (
             <div style={{
               backgroundColor: '#111116',
