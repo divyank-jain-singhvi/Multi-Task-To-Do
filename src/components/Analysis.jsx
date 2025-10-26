@@ -483,8 +483,8 @@ function Analysis({ user, isMobile = false }) {
                   
                   {/* Y-axis and labels */}
                   <line x1="40" y1="0" x2="40" y2="100%" stroke="#666" strokeWidth="1"/>
-                  {[0, 25, 50, 75, 100].map((value) => {
-                    const y = (100 - value) * ((isMobile ? 140 : 160) - 40) / 100
+                  {[0, 25, 50, 75, 100, 125,150].map((value) => {
+                    const y = (150 - value) * ((isMobile ? 140 : 160) - 40) / 150
                     return (
                       <g key={value}>
                         <line 
@@ -515,12 +515,12 @@ function Analysis({ user, isMobile = false }) {
                       const height = (isMobile ? 140 : 160) - 40 // Total height minus bottom margin
                       const columnWidth = isMobile ? 35 : 40
                       const taskColumnWidth = isMobile ? 150 : 200
-                      const yAxisOffset = 40 // X offset for y-axis
+                      const yAxisOffset = 0 // X offset for y-axis
                       
                       let path = ''
                       dailyCompletionData.forEach((item, index) => {
                         const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                        const y = height - (item.percentage * height / 100) // Use percentage directly
+                        const y = height - (item.percentage * height / 150) // Use percentage directly
                         if (index === 0) {
                           path += `M ${x} ${y}`
                         } else {
@@ -541,12 +541,12 @@ function Analysis({ user, isMobile = false }) {
                     const height = (isMobile ? 140 : 160) - 40
                     const columnWidth = isMobile ? 35 : 40
                     const taskColumnWidth = isMobile ? 150 : 200
-                    const yAxisOffset = 40
+                    const yAxisOffset = 0
                     
                     const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                    const y = height - (item.percentage * height / 100) // Use percentage directly
+                    const y = height - (item.percentage * height / 150) // Use percentage directly
                     
-                    const textY = item.percentage > 90 ? y + 16 : y - 8 // Flip label position if near top
+                    const textY = y - 8 // Flip label position if near top
                     
                     return (
                       <g key={index}>
@@ -561,7 +561,7 @@ function Analysis({ user, isMobile = false }) {
                         {/* Task count badge */}
                         <text
                           x={x}
-                          y={y - (item.percentage > 90 ? -24 : 20)}
+                          y={y - 20}
                           textAnchor="middle"
                           fontSize={isMobile ? "8px" : "9px"}
                           fill="#666"
@@ -769,8 +769,8 @@ function Analysis({ user, isMobile = false }) {
                   
                   {/* Y-axis and labels */}
                   <line x1="40" y1="0" x2="40" y2="100%" stroke="#666" strokeWidth="1"/>
-                  {[0, 25, 50, 75, 100].map((value) => {
-                    const y = (100 - value) * ((isMobile ? 140 : 160) - 40) / 100
+                  {[0, 25, 50, 75, 100, 125, 150].map((value) => {
+                    const y = (150 - value) * ((isMobile ? 140 : 160) - 40) / 150
                     return (
                       <g key={value}>
                         <line 
@@ -801,12 +801,12 @@ function Analysis({ user, isMobile = false }) {
                       const height = (isMobile ? 140 : 160) - 40
                       const columnWidth = isMobile ? 30 : 60
                       const taskColumnWidth = isMobile ? 120 : 200
-                      const yAxisOffset = 40
+                      const yAxisOffset = 0
                       
                       let path = ''
                       weeklyCompletionData.forEach((item, index) => {
                         const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                        const y = height - (item.percentage * height / 100) // Use percentage directly
+                        const y = height - (item.percentage * height / 150) // Use percentage directly
                         if (index === 0) {
                           path += `M ${x} ${y}`
                         } else {
@@ -827,12 +827,12 @@ function Analysis({ user, isMobile = false }) {
                     const height = (isMobile ? 140 : 160) - 40
                     const columnWidth = isMobile ? 30 : 60
                     const taskColumnWidth = isMobile ? 120 : 200
-                    const yAxisOffset = 40
+                    const yAxisOffset = 0
                     
                     const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                    const y = height - (item.percentage * height / 100)
+                    const y = height - (item.percentage * height / 150)
                     
-                    const textY = item.percentage > 90 ? y + 16 : y - 8 // Flip label position if near top
+                    const textY = y - 8 // Flip label position if near top
                     
                     return (
                       <g key={index}>
@@ -847,7 +847,7 @@ function Analysis({ user, isMobile = false }) {
                         {/* Goal count badge */}
                         <text
                           x={x}
-                          y={y - (item.percentage > 90 ? -24 : 20)}
+                          y={y -  20}
                           textAnchor="middle"
                           fontSize={isMobile ? "8px" : "9px"}
                           fill="#666"
@@ -1054,8 +1054,8 @@ function Analysis({ user, isMobile = false }) {
                   
                   {/* Y-axis and labels */}
                   <line x1="40" y1="0" x2="40" y2="100%" stroke="#666" strokeWidth="1"/>
-                  {[0, 25, 50, 75, 100].map((value) => {
-                    const y = (100 - value) * ((isMobile ? 140 : 160) - 40) / 100
+                  {[0, 25, 50, 75, 100, 125, 150].map((value) => {
+                    const y = (150 - value) * ((isMobile ? 140 : 160) - 40) / 150
                     return (
                       <g key={value}>
                         <line 
@@ -1086,12 +1086,12 @@ function Analysis({ user, isMobile = false }) {
                       const height = (isMobile ? 140 : 160) - 40
                       const columnWidth = isMobile ? 25 : 60
                       const taskColumnWidth = isMobile ? 120 : 200
-                      const yAxisOffset = 40
+                      const yAxisOffset = 0
                       
                       let path = ''
                       monthlyCompletionData.forEach((item, index) => {
                         const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                        const y = height - (item.percentage * height / 100) // Use percentage directly
+                        const y = height - (item.percentage * height / 150) // Use percentage directly
                         if (index === 0) {
                           path += `M ${x} ${y}`
                         } else {
@@ -1112,12 +1112,12 @@ function Analysis({ user, isMobile = false }) {
                     const height = (isMobile ? 140 : 160) - 40
                     const columnWidth = isMobile ? 25 : 60
                     const taskColumnWidth = isMobile ? 120 : 200
-                    const yAxisOffset = 40
+                    const yAxisOffset = 0
                     
                     const x = yAxisOffset + taskColumnWidth + (index * columnWidth) + (columnWidth / 2)
-                    const y = height - (item.percentage * height / 100)
+                    const y = height - (item.percentage * height / 150)
                     
-                    const textY = item.percentage > 90 ? y + 16 : y - 8 // Flip label position if near top
+                    const textY = y - 8 // Flip label position if near top
                     
                     return (
                       <g key={index}>
@@ -1132,7 +1132,7 @@ function Analysis({ user, isMobile = false }) {
                         {/* Goal count badge */}
                         <text
                           x={x}
-                          y={y - (item.percentage > 90 ? -24 : 20)}
+                          y={y - 20}
                           textAnchor="middle"
                           fontSize={isMobile ? "8px" : "9px"}
                           fill="#666"
