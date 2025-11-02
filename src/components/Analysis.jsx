@@ -1017,7 +1017,7 @@ function Analysis({ user, isMobile = false }) {
               padding: isMobile ? '12px' : '16px',
               marginTop: '16px',
               width: 'max-content',
-              minWidth: isMobile ? `${120 + (12 * 25) + (11 * 2)}px` : `${200 + (12 * 60) + (11 * 2)}px`
+              minWidth: isMobile ? `${178 + (12 * 25) + (11 * 2)}px` : `${258 + (12 * 60) + (11 * 2)}px`
             }}>
               <h4 style={{ 
                 margin: '0 0 12px 0', 
