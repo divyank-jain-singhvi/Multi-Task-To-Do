@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWeek, getAllDays, getAllWeeks, getAllMonths, subscribeAllDays, subscribeAllWeeks, subscribeAllMonths } from './services/realtime'
+import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWeek, getAllDays, getAllWeeks, getAllMonths, subscribeAllDays, subscribeAllWeeks, subscribeAllMonths, getDay } from './services/realtime'
 import { onAuthChange, logout } from './services/auth'
 import Login from './components/Login'
 import Portfolio from './components/Portfolio'
@@ -1100,25 +1100,46 @@ function App() {
     prevUidRef.current = nextUid
   }, [user?.uid])
 
-  const handleRepeatTask = (hour, text, selectedDates) => {
+  const handleRepeatTask = async (hour, text, selectedDates) => {
     if (!selectedDates || !selectedDates.length) return
-    setDailyTasks((prev) => {
-      const next = { ...prev }
-      selectedDates.forEach(date => {
-        const key = formatDateKey(date)
-        const dayTasks = next[key] || {}
-        dayTasks[hour] = { text, done: false, cancelled: false }
-        next[key] = dayTasks
-      })
-      return next
-    })
-    // Save to Firebase for each date if user is logged in
-    if (user?.uid) {
-      selectedDates.forEach(date => {
-        const key = formatDateKey(date)
-        const dayData = { tasks: { ...(dailyTasks[key] || {}), [hour]: { text, done: false, cancelled: false } }, note: dailyNotes[key] || '' }
-        saveDay(user.uid, key, dayData).catch(() => {})
-      })
+    if (!user?.uid) return
+    
+    // Save to Firebase for each date - fetch current data first to preserve existing tasks
+    for (const date of selectedDates) {
+      const key = formatDateKey(date)
+      try {
+        // Fetch current data from Firebase to ensure we don't lose existing tasks
+        const currentData = await getDay(user.uid, key)
+        const existingTasks = currentData.tasks || {}
+        const existingNote = currentData.note || ''
+        
+        // Preserve all existing tasks, only update/add the specific hour
+        const updatedTasks = { ...existingTasks, [hour]: { text, done: false, cancelled: false } }
+        
+        // Save merged data back to Firebase
+        const dayData = { tasks: updatedTasks, note: existingNote || dailyNotes[key] || '' }
+        await saveDay(user.uid, key, dayData)
+        
+        // Update local state after successful save to keep UI in sync
+        setDailyTasks((prev) => {
+          const next = { ...prev }
+          next[key] = updatedTasks
+          return next
+        })
+        if (existingNote && !dailyNotes[key]) {
+          setDailyNotes((prev) => ({ ...prev, [key]: existingNote }))
+        }
+      } catch (error) {
+        console.error(`Error saving repeat task for ${key}:`, error)
+        // Fallback: update local state only if Firebase fails
+        setDailyTasks((prev) => {
+          const next = { ...prev }
+          const dayTasks = next[key] || {}
+          dayTasks[hour] = { text, done: false, cancelled: false }
+          next[key] = dayTasks
+          return next
+        })
+      }
     }
   }
 

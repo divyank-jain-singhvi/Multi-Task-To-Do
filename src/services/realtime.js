@@ -38,6 +38,28 @@ export async function saveDay(userId, dateKey, data) {
   await set(child(root(userId), `days/${dateKey}`), data)
 }
 
+export async function getDay(userId, dateKey) {
+  if (!db) return { tasks: {}, note: '' }
+  const r = child(root(userId), `days/${dateKey}`)
+  const snap = await get(r)
+  if (!snap.exists()) return { tasks: {}, note: '' }
+  const data = snap.val()
+  // Normalize tasks structure
+  const inputTasks = data.tasks || {}
+  const tasks = {}
+  Object.keys(inputTasks).forEach((k) => {
+    const v = inputTasks[k]
+    if (typeof v === 'string') {
+      tasks[k] = { text: v, done: false, cancelled: false }
+    } else if (v && typeof v === 'object') {
+      tasks[k] = { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+    } else {
+      tasks[k] = { text: '', done: false, cancelled: false }
+    }
+  })
+  return { tasks, note: data.note || '' }
+}
+
 export function subscribeMonth(userId, monthKey, callback) {
   if (!db) {
     let cancelled = false
