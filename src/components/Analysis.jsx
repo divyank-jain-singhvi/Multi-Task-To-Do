@@ -190,12 +190,12 @@ function Analysis({ user, isMobile = false }) {
         const dayData = allDaysData[dateKey]
         if (!dayData?.tasks) return { day: dayNumber, completed: 0, total: 0, percentage: 0 }
         
-        // Only count tasks that have text content
-        const tasks = Object.values(dayData.tasks).filter(task => task?.text && task.text.trim() !== '')
+        // Count all tasks that have text content (including cancelled)
+        const allTasks = Object.values(dayData.tasks).filter(task => task?.text && task.text.trim() !== '')
         
-        // Count completed tasks (must have text and be marked done)
-        const completed = tasks.filter(task => task.done === true).length
-        const total = tasks.length
+        // Count completed tasks (must have text and be marked done, cancelled tasks don't count as completed)
+        const completed = allTasks.filter(task => task.done === true && !task.cancelled).length
+        const total = allTasks.length
         
         // Calculate percentage based on tasks actually done vs total tasks
         const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
@@ -214,9 +214,11 @@ function Analysis({ user, isMobile = false }) {
       const weekData = allWeeksData[weekKey]
       if (!weekData?.goals) return { week: weekNumber, completed: 0, total: 0, percentage: 0 }
       
-      const goals = weekData.goals.filter(goal => goal?.text && goal.text.trim() !== '')
-      const completed = goals.filter(goal => goal.done).length
-      const total = goals.length
+      // Count all goals that have text content (including cancelled)
+      const allGoals = weekData.goals.filter(goal => goal?.text && goal.text.trim() !== '')
+      // Count completed goals (cancelled goals don't count as completed)
+      const completed = allGoals.filter(goal => goal.done && !goal.cancelled).length
+      const total = allGoals.length
       const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
       
       return { week: weekNumber, completed, total, percentage }
@@ -229,9 +231,11 @@ function Analysis({ user, isMobile = false }) {
       const monthData = allMonthsData[monthKey]
       if (!monthData?.goals) return { month: monthNumber, completed: 0, total: 0, percentage: 0 }
       
-      const goals = monthData.goals.filter(goal => goal?.text && goal.text.trim() !== '')
-      const completed = goals.filter(goal => goal.done).length
-      const total = goals.length
+      // Count all goals that have text content (including cancelled)
+      const allGoals = monthData.goals.filter(goal => goal?.text && goal.text.trim() !== '')
+      // Count completed goals (cancelled goals don't count as completed)
+      const completed = allGoals.filter(goal => goal.done && !goal.cancelled).length
+      const total = allGoals.length
       const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
       
       return { month: monthNumber, completed, total, percentage }
@@ -257,6 +261,7 @@ function Analysis({ user, isMobile = false }) {
         
         // Compare both hour and text, handling string/number hour formats
         if (hour === targetHour && task.text.trim() === targetText.trim()) {
+          if (task.cancelled) return 'cancelled'
           return task.done ? 'completed' : 'pending'
         }
       }
@@ -275,6 +280,7 @@ function Analysis({ user, isMobile = false }) {
     
     const goal = weekData.goals.find(g => g?.text === goalKey)
     if (!goal) return 'missing'
+    if (goal.cancelled) return 'cancelled'
     return goal.done ? 'completed' : 'pending'
   }
 
@@ -285,6 +291,7 @@ function Analysis({ user, isMobile = false }) {
     
     const goal = monthData.goals.find(g => g?.text === goalKey)
     if (!goal) return 'missing'
+    if (goal.cancelled) return 'cancelled'
     return goal.done ? 'completed' : 'pending'
   }
 
@@ -424,13 +431,14 @@ function Analysis({ user, isMobile = false }) {
                       <div key={dateKey} style={{
                         padding: isMobile ? '6px 2px' : '8px 4px',
                         backgroundColor: status === 'completed' ? '#10b981' : 
-                                        status === 'pending' ? '#f59e0b' : '#374151',
+                                        status === 'pending' ? '#f59e0b' : 
+                                        status === 'cancelled' ? '#ef4444' : '#374151',
                         borderRadius: '4px',
                         textAlign: 'center',
                         color: 'white',
                         fontSize: isMobile ? '14px' : '16px'
                       }}>
-                        {status === 'completed' ? '✓' : status === 'pending' ? '○' : '✗'}
+                        {status === 'completed' ? '✓' : status === 'pending' ? '○' : status === 'cancelled' ? '✕' : '✗'}
                       </div>
                     )
                   })}

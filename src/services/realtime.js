@@ -15,17 +15,17 @@ export function subscribeDay(userId, dateKey, callback) {
   const r = child(root(userId), `days/${dateKey}`)
   const unsub = onValue(r, (snap) => {
     const data = snap.exists() ? snap.val() : { tasks: {}, note: '' }
-    // Ensure proper structure and normalize tasks to { text, done }
+    // Ensure proper structure and normalize tasks to { text, done, cancelled }
     const inputTasks = data.tasks || {}
     const tasks = {}
     Object.keys(inputTasks).forEach((k) => {
       const v = inputTasks[k]
       if (typeof v === 'string') {
-        tasks[k] = { text: v, done: false }
+        tasks[k] = { text: v, done: false, cancelled: false }
       } else if (v && typeof v === 'object') {
-        tasks[k] = { text: v.text || '', done: !!v.done }
+        tasks[k] = { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
       } else {
-        tasks[k] = { text: '', done: false }
+        tasks[k] = { text: '', done: false, cancelled: false }
       }
     })
     callback({ tasks, note: data.note || '' })
@@ -51,9 +51,9 @@ export function subscribeMonth(userId, monthKey, callback) {
     const data = snap.exists() ? snap.val() : { goals: [] }
     const rawGoals = Array.isArray(data.goals) ? data.goals : []
     const goals = rawGoals.map((g) => {
-      if (typeof g === 'string') return { text: g, done: false }
-      if (g && typeof g === 'object') return { text: g.text || '', done: !!g.done }
-      return { text: '', done: false }
+      if (typeof g === 'string') return { text: g, done: false, cancelled: false }
+      if (g && typeof g === 'object') return { text: g.text || '', done: !!g.done, cancelled: !!g.cancelled }
+      return { text: '', done: false, cancelled: false }
     })
     callback({ goals })
   })
@@ -79,9 +79,9 @@ export function subscribeWeek(userId, weekKey, callback) {
     const data = snap.exists() ? snap.val() : { goals: [] }
     const rawGoals = Array.isArray(data.goals) ? data.goals : []
     const goals = rawGoals.map((g) => {
-      if (typeof g === 'string') return { text: g, done: false }
-      if (g && typeof g === 'object') return { text: g.text || '', done: !!g.done }
-      return { text: '', done: false }
+      if (typeof g === 'string') return { text: g, done: false, cancelled: false }
+      if (g && typeof g === 'object') return { text: g.text || '', done: !!g.done, cancelled: !!g.cancelled }
+      return { text: '', done: false, cancelled: false }
     })
     callback({ goals })
   })

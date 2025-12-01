@@ -210,23 +210,70 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
                 gap: isMobile ? '6px' : '8px', 
                 alignItems: 'flex-start' 
               }}>
-                <input
-                  type="checkbox"
-                  checked={!!(tasks[h]?.done)}
-                  onChange={(e) => {
-                    const current = tasks[h] || { text: '', done: false }
-                    onChange({ ...tasks, [h]: { ...current, done: e.target.checked } })
-                  }}
-                  style={{ 
-                    marginTop: isMobile ? '4px' : '6px',
-                    width: isMobile ? '14px' : '16px',
-                    height: isMobile ? '14px' : '16px'
-                  }}
-                />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!(tasks[h]?.done)}
+                    onChange={(e) => {
+                      const current = tasks[h] || { text: '', done: false, cancelled: false }
+                      onChange({ ...tasks, [h]: { ...current, done: e.target.checked, cancelled: e.target.checked ? false : current.cancelled } })
+                    }}
+                    style={{ 
+                      marginTop: isMobile ? '4px' : '6px',
+                      width: isMobile ? '14px' : '16px',
+                      height: isMobile ? '14px' : '16px'
+                    }}
+                  />
+                  <label
+                    style={{
+                      position: 'relative',
+                      cursor: 'pointer',
+                      width: isMobile ? '18px' : '20px',
+                      height: isMobile ? '18px' : '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title="Mark as never going to complete"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!(tasks[h]?.cancelled)}
+                      onChange={(e) => {
+                        const current = tasks[h] || { text: '', done: false, cancelled: false }
+                        onChange({ ...tasks, [h]: { ...current, cancelled: e.target.checked, done: e.target.checked ? false : current.done } })
+                      }}
+                      style={{
+                        position: 'absolute',
+                        opacity: 0,
+                        width: '100%',
+                        height: '100%',
+                        margin: 0,
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      border: '1px solid #ef4444',
+                      borderRadius: '4px',
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#ef4444',
+                      fontSize: isMobile ? '10px' : '12px',
+                      backgroundColor: !!(tasks[h]?.cancelled) ? '#ef4444' : 'transparent',
+                      color: !!(tasks[h]?.cancelled) ? 'white' : '#ef4444'
+                    }}>
+                      ✕
+                    </span>
+                  </label>
+                </div>
                 <textarea
                   value={(tasks[h]?.text) || ''}
                   onChange={(e) => {
-                    const current = tasks[h] || { text: '', done: false }
+                    const current = tasks[h] || { text: '', done: false, cancelled: false }
                     onChange({ ...tasks, [h]: { ...current, text: e.target.value } })
                   }}
                   placeholder="Add task..."
@@ -332,34 +379,81 @@ function MonthlyGoals({ monthKey, goals, onChange, onPrev, onNext, isMobile = fa
         </button>
       </div>
       <div className="goals">
-        {(goals && goals.length ? goals : [{ text: '' , done: false }]).map((g, i) => (
+        {(goals && goals.length ? goals : [{ text: '' , done: false, cancelled: false }]).map((g, i) => (
           <div key={i} style={{ 
             display: 'flex', 
             gap: isMobile ? '6px' : '8px', 
             alignItems: 'center',
             marginBottom: isMobile ? '6px' : '8px'
           }}>
-            <input
-              type="checkbox"
-              checked={!!g?.done}
-              onChange={(e) => {
-                const next = (goals && goals.length ? goals.slice() : [{ text: '' , done: false }])
-                next[i] = { text: g?.text || '', done: e.target.checked }
-                onChange(next)
-              }}
-              style={{
-                width: isMobile ? '14px' : '16px',
-                height: isMobile ? '14px' : '16px'
-              }}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+              <input
+                type="checkbox"
+                checked={!!g?.done}
+                onChange={(e) => {
+                  const next = (goals && goals.length ? goals.slice() : [{ text: '' , done: false, cancelled: false }])
+                  next[i] = { text: g?.text || '', done: e.target.checked, cancelled: e.target.checked ? false : (g?.cancelled || false) }
+                  onChange(next)
+                }}
+                style={{
+                  width: isMobile ? '14px' : '16px',
+                  height: isMobile ? '14px' : '16px'
+                }}
+              />
+              <label
+                style={{
+                  position: 'relative',
+                  cursor: 'pointer',
+                  width: isMobile ? '18px' : '20px',
+                  height: isMobile ? '18px' : '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title="Mark as never going to complete"
+              >
+                  <input
+                    type="checkbox"
+                    checked={!!g?.cancelled}
+                    onChange={(e) => {
+                      const next = (goals && goals.length ? goals.slice() : [{ text: '' , done: false, cancelled: false }])
+                      next[i] = { text: g?.text || '', cancelled: e.target.checked, done: e.target.checked ? false : (g?.done || false) }
+                      onChange(next)
+                    }}
+                  style={{
+                    position: 'absolute',
+                    opacity: 0,
+                    width: '100%',
+                    height: '100%',
+                    margin: 0,
+                    cursor: 'pointer'
+                  }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  border: '1px solid #ef4444',
+                  borderRadius: '4px',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: isMobile ? '10px' : '12px',
+                  backgroundColor: !!g?.cancelled ? '#ef4444' : 'transparent',
+                  color: !!g?.cancelled ? 'white' : '#ef4444'
+                }}>
+                  ✕
+                </span>
+              </label>
+            </div>
             <input
             key={i}
             className="goal-input"
             placeholder={`Goal ${i + 1}`}
             value={(g?.text) || ''}
             onChange={(e) => {
-              const next = goals && goals.length ? goals.slice() : [{ text: '' , done: false }]
-              next[i] = { text: e.target.value, done: !!g?.done }
+              const next = goals && goals.length ? goals.slice() : [{ text: '' , done: false, cancelled: false }]
+              next[i] = { text: e.target.value, done: !!g?.done, cancelled: !!g?.cancelled }
               onChange(next)
             }}
             style={{
@@ -378,8 +472,8 @@ function MonthlyGoals({ monthKey, goals, onChange, onPrev, onNext, isMobile = fa
           <button
             className="btn"
             onClick={() => {
-              const base = (goals && goals.length) ? goals : [{ text: '', done: false }]
-              onChange([...base, { text: '', done: false }])
+              const base = (goals && goals.length) ? goals : [{ text: '', done: false, cancelled: false }]
+              onChange([...base, { text: '', done: false, cancelled: false }])
             }}
             style={{
               padding: isMobile ? '8px 12px' : '6px 10px',
@@ -438,32 +532,79 @@ function WeeklyGoals({ weekKey, goals, onChange, onPrev, onNext, isMobile = fals
         </button>
       </div>
       <div className="goal-list">
-        {(goals && goals.length ? goals : [{ text: '' , done: false }]).map((g, i) => (
+        {(goals && goals.length ? goals : [{ text: '' , done: false, cancelled: false }]).map((g, i) => (
           <div key={i} className="goal-item" style={{
             padding: isMobile ? '8px' : '10px',
             marginBottom: isMobile ? '6px' : '8px'
           }}>
-            <input
-              type="checkbox"
-              checked={!!g?.done}
-              onChange={(e) => {
-                const next = (goals && goals.length ? goals.slice() : [{ text: '' , done: false }])
-                next[i] = { text: g?.text || '', done: e.target.checked }
-                onChange(next)
-              }}
-              style={{
-                width: isMobile ? '14px' : '16px',
-                height: isMobile ? '14px' : '16px'
-              }}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+              <input
+                type="checkbox"
+                checked={!!g?.done}
+                onChange={(e) => {
+                  const next = (goals && goals.length ? goals.slice() : [{ text: '' , done: false, cancelled: false }])
+                  next[i] = { text: g?.text || '', done: e.target.checked, cancelled: e.target.checked ? false : (g?.cancelled || false) }
+                  onChange(next)
+                }}
+                style={{
+                  width: isMobile ? '14px' : '16px',
+                  height: isMobile ? '14px' : '16px'
+                }}
+              />
+              <label
+                style={{
+                  position: 'relative',
+                  cursor: 'pointer',
+                  width: isMobile ? '18px' : '20px',
+                  height: isMobile ? '18px' : '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                title="Mark as never going to complete"
+              >
+                  <input
+                    type="checkbox"
+                    checked={!!g?.cancelled}
+                    onChange={(e) => {
+                      const next = (goals && goals.length ? goals.slice() : [{ text: '' , done: false, cancelled: false }])
+                      next[i] = { text: g?.text || '', cancelled: e.target.checked, done: e.target.checked ? false : (g?.done || false) }
+                      onChange(next)
+                    }}
+                  style={{
+                    position: 'absolute',
+                    opacity: 0,
+                    width: '100%',
+                    height: '100%',
+                    margin: 0,
+                    cursor: 'pointer'
+                  }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  border: '1px solid #ef4444',
+                  borderRadius: '4px',
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: isMobile ? '10px' : '12px',
+                  backgroundColor: !!g?.cancelled ? '#ef4444' : 'transparent',
+                  color: !!g?.cancelled ? 'white' : '#ef4444'
+                }}>
+                  ✕
+                </span>
+              </label>
+            </div>
             <input
               key={i}
               className="goal-input"
               placeholder={`Weekly Goal ${i + 1}`}
               value={(g?.text) || ''}
               onChange={(e) => {
-                const next = goals && goals.length ? goals.slice() : [{ text: '' , done: false }]
-                next[i] = { text: e.target.value, done: !!g?.done }
+                const next = goals && goals.length ? goals.slice() : [{ text: '' , done: false, cancelled: false }]
+                next[i] = { text: e.target.value, done: !!g?.done, cancelled: !!g?.cancelled }
                 onChange(next)
               }}
               style={{
@@ -480,8 +621,8 @@ function WeeklyGoals({ weekKey, goals, onChange, onPrev, onNext, isMobile = fals
           <button
             className="btn"
             onClick={() => {
-              const base = (goals && goals.length) ? goals : [{ text: '', done: false }]
-              onChange([...base, { text: '', done: false }])
+              const base = (goals && goals.length) ? goals : [{ text: '', done: false, cancelled: false }]
+              onChange([...base, { text: '', done: false, cancelled: false }])
             }}
             style={{
               padding: isMobile ? '8px 12px' : '6px 10px',
@@ -771,8 +912,9 @@ function App() {
             const tasksMap = (data && data.tasks) || {}
             Object.entries(tasksMap).forEach(([h, v]) => {
               const done = !!(v && v.done)
+              const cancelled = !!(v && v.cancelled)
               const text = (v && v.text) || ''
-              if (!done && text.trim() !== '') {
+              if (!done && !cancelled && text.trim() !== '') {
                 const hourNum = Number(h)
                 daily.push({ dateKey: dKey, hour: hourNum, text })
               }
@@ -789,7 +931,8 @@ function App() {
             goals.forEach((g, idx) => {
               const text = (g && g.text) || ''
               const done = !!(g && g.done)
-              if (!done && text.trim() !== '') weekly.push({ weekKey: wKey, index: idx, text })
+              const cancelled = !!(g && g.cancelled)
+              if (!done && !cancelled && text.trim() !== '') weekly.push({ weekKey: wKey, index: idx, text })
             })
           }
         })
@@ -803,7 +946,8 @@ function App() {
             goals.forEach((g, idx) => {
               const text = (g && g.text) || ''
               const done = !!(g && g.done)
-              if (!done && text.trim() !== '') monthly.push({ monthKey: mKey, index: idx, text })
+              const cancelled = !!(g && g.cancelled)
+              if (!done && !cancelled && text.trim() !== '') monthly.push({ monthKey: mKey, index: idx, text })
             })
           }
         })
@@ -829,7 +973,7 @@ function App() {
     return Object.entries(tasksForDay)
       .filter(([h, v]) => {
         const hourNum = Number(h)
-        return hourNum <= currentHour && v && typeof v === 'object' && !v.done && (v.text || '').trim() !== ''
+        return hourNum <= currentHour && v && typeof v === 'object' && !v.done && !v.cancelled && (v.text || '').trim() !== ''
       })
       .map(([hour, v]) => ({ hour: Number(hour), text: v.text }))
       .sort((a, b) => a.hour - b.hour)
@@ -838,15 +982,15 @@ function App() {
   const pendingWeekly = useMemo(() => {
     const goals = weeklyGoals[todayWeekKey] || []
     return goals
-      .map((g, idx) => ({ index: idx, text: g?.text || '', done: !!g?.done }))
-      .filter((g) => !g.done && g.text.trim() !== '')
+      .map((g, idx) => ({ index: idx, text: g?.text || '', done: !!g?.done, cancelled: !!g?.cancelled }))
+      .filter((g) => !g.done && !g.cancelled && g.text.trim() !== '')
   }, [weeklyGoals, todayWeekKey])
 
   const pendingMonthly = useMemo(() => {
     const goals = monthlyGoals[todayMonthKey] || []
     return goals
-      .map((g, idx) => ({ index: idx, text: g?.text || '', done: !!g?.done }))
-      .filter((g) => !g.done && g.text.trim() !== '')
+      .map((g, idx) => ({ index: idx, text: g?.text || '', done: !!g?.done, cancelled: !!g?.cancelled }))
+      .filter((g) => !g.done && !g.cancelled && g.text.trim() !== '')
   }, [monthlyGoals, todayMonthKey])
 
   const totalPendingCount =
@@ -856,8 +1000,20 @@ function App() {
 
   const toggleDailyDone = (hour, dateKey = todayDateKey) => {
     const current = dailyTasks[dateKey] || {}
-    const entry = current[hour] || { text: '', done: false }
-    const next = { ...current, [hour]: { ...entry, done: true } }
+    const entry = current[hour] || { text: '', done: false, cancelled: false }
+    const next = { ...current, [hour]: { ...entry, done: true, cancelled: false } }
+    setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
+    if (user?.uid) {
+      const dayData = { tasks: next, note: dailyNotes[dateKey] || '' }
+      saveDay(user.uid, dateKey, dayData).catch(() => {})
+    }
+  }
+
+  const toggleDailyCancelled = (hour, dateKey = todayDateKey) => {
+    const current = dailyTasks[dateKey] || {}
+    const entry = current[hour] || { text: '', done: false, cancelled: false }
+    const newCancelled = !entry.cancelled
+    const next = { ...current, [hour]: { ...entry, cancelled: newCancelled, done: newCancelled ? false : entry.done } }
     setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
     if (user?.uid) {
       const dayData = { tasks: next, note: dailyNotes[dateKey] || '' }
@@ -867,8 +1023,19 @@ function App() {
 
   const toggleWeeklyDone = (index, weekKey = todayWeekKey) => {
     const list = (weeklyGoals[weekKey] || []).slice()
-    const g = list[index] || { text: '', done: false }
-    list[index] = { ...g, done: true }
+    const g = list[index] || { text: '', done: false, cancelled: false }
+    list[index] = { ...g, done: true, cancelled: false }
+    setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
+    if (user?.uid) {
+      saveWeek(user.uid, weekKey, { goals: list }).catch(() => {})
+    }
+  }
+
+  const toggleWeeklyCancelled = (index, weekKey = todayWeekKey) => {
+    const list = (weeklyGoals[weekKey] || []).slice()
+    const g = list[index] || { text: '', done: false, cancelled: false }
+    const newCancelled = !g.cancelled
+    list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
     setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
     if (user?.uid) {
       saveWeek(user.uid, weekKey, { goals: list }).catch(() => {})
@@ -877,8 +1044,19 @@ function App() {
 
   const toggleMonthlyDone = (index, monthKey = todayMonthKey) => {
     const list = (monthlyGoals[monthKey] || []).slice()
-    const g = list[index] || { text: '', done: false }
-    list[index] = { ...g, done: true }
+    const g = list[index] || { text: '', done: false, cancelled: false }
+    list[index] = { ...g, done: true, cancelled: false }
+    setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
+    if (user?.uid) {
+      saveMonth(user.uid, monthKey, { goals: list }).catch(() => {})
+    }
+  }
+
+  const toggleMonthlyCancelled = (index, monthKey = todayMonthKey) => {
+    const list = (monthlyGoals[monthKey] || []).slice()
+    const g = list[index] || { text: '', done: false, cancelled: false }
+    const newCancelled = !g.cancelled
+    list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
     setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
     if (user?.uid) {
       saveMonth(user.uid, monthKey, { goals: list }).catch(() => {})
@@ -929,7 +1107,7 @@ function App() {
       selectedDates.forEach(date => {
         const key = formatDateKey(date)
         const dayTasks = next[key] || {}
-        dayTasks[hour] = { text, done: false }
+        dayTasks[hour] = { text, done: false, cancelled: false }
         next[key] = dayTasks
       })
       return next
@@ -938,7 +1116,7 @@ function App() {
     if (user?.uid) {
       selectedDates.forEach(date => {
         const key = formatDateKey(date)
-        const dayData = { tasks: { ...(dailyTasks[key] || {}), [hour]: { text, done: false } }, note: dailyNotes[key] || '' }
+        const dayData = { tasks: { ...(dailyTasks[key] || {}), [hour]: { text, done: false, cancelled: false } }, note: dailyNotes[key] || '' }
         saveDay(user.uid, key, dayData).catch(() => {})
       })
     }
@@ -1518,8 +1696,9 @@ function App() {
 
                   {isDailyOpen && (
                     <div className="table">
-                      <div className="table-head" style={{ display: isMobile ? 'none' : 'grid', gridTemplateColumns: '70px 140px 80px 1fr', gap: '8px', alignItems: 'center' }}>
+                      <div className="table-head" style={{ display: isMobile ? 'none' : 'grid', gridTemplateColumns: '70px 70px 140px 80px 1fr', gap: '8px', alignItems: 'center' }}>
                         <div className="table-hour">Done</div>
+                        <div className="table-hour">Cancel</div>
                         <div className="table-hour">Date</div>
                         <div className="table-hour">Hour</div>
                         <div className="table-task">Task</div>
@@ -1528,12 +1707,81 @@ function App() {
                         {[...allPending.daily, ...pendingDaily.map((t) => ({ dateKey: todayDateKey, hour: t.hour, text: t.text }))].map((t, i) => (
                           <div key={`d-${t.dateKey}-${t.hour}-${i}`} className="table-row" style={{ 
                             display: 'grid', 
-                            gridTemplateColumns: isMobile ? '60px 1fr' : '70px 140px 80px 1fr', 
+                            gridTemplateColumns: isMobile ? '60px 60px 1fr' : '70px 70px 140px 80px 1fr', 
                             gap: '8px', 
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <input type="checkbox" onChange={() => toggleDailyDone(t.hour, t.dateKey)} />
+                            </div>
+                            <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <label
+                                style={{
+                                  position: 'relative',
+                                  cursor: 'pointer',
+                                  width: '24px',
+                                  height: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                title="Mark as never going to complete"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={(() => {
+                                    const current = dailyTasks[t.dateKey] || {}
+                                    const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                    return !!entry.cancelled
+                                  })()}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      toggleDailyCancelled(t.hour, t.dateKey)
+                                    } else {
+                                      // Uncancel: reset cancelled state
+                                      const current = dailyTasks[t.dateKey] || {}
+                                      const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                      const next = { ...current, [t.hour]: { ...entry, cancelled: false } }
+                                      setDailyTasks((prev) => ({ ...prev, [t.dateKey]: next }))
+                                      if (user?.uid) {
+                                        const dayData = { tasks: next, note: dailyNotes[t.dateKey] || '' }
+                                        saveDay(user.uid, t.dateKey, dayData).catch(() => {})
+                                      }
+                                    }
+                                  }}
+                                  style={{
+                                    position: 'absolute',
+                                    opacity: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    margin: 0,
+                                    cursor: 'pointer'
+                                  }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  border: '1px solid #ef4444',
+                                  borderRadius: '4px',
+                                  width: '100%',
+                                  height: '100%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '12px',
+                                  backgroundColor: (() => {
+                                    const current = dailyTasks[t.dateKey] || {}
+                                    const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                    return !!entry.cancelled ? '#ef4444' : 'transparent'
+                                  })(),
+                                  color: (() => {
+                                    const current = dailyTasks[t.dateKey] || {}
+                                    const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                    return !!entry.cancelled ? 'white' : '#ef4444'
+                                  })()
+                                }}>
+                                  ✕
+                                </span>
+                              </label>
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1642,8 +1890,9 @@ function App() {
 
                   {isWeeklyOpen && (
                     <div className="table">
-                      <div className="table-head" style={{ display: isMobile ? 'none' : 'grid', gridTemplateColumns: '70px 200px 1fr', gap: '8px', alignItems: 'center' }}>
+                      <div className="table-head" style={{ display: isMobile ? 'none' : 'grid', gridTemplateColumns: '70px 70px 200px 1fr', gap: '8px', alignItems: 'center' }}>
                         <div className="table-hour">Done</div>
+                        <div className="table-hour">Cancel</div>
                         <div className="table-hour">Week</div>
                         <div className="table-task">Goal</div>
                       </div>
@@ -1651,12 +1900,67 @@ function App() {
                         {[...allPending.weekly, ...pendingWeekly.map((g) => ({ weekKey: todayWeekKey, index: g.index, text: g.text }))].map((g, i) => (
                           <div key={`w-${g.weekKey}-${g.index}-${i}`} className="table-row" style={{ 
                             display: 'grid', 
-                            gridTemplateColumns: isMobile ? '60px 1fr' : '70px 200px 1fr', 
+                            gridTemplateColumns: isMobile ? '60px 60px 1fr' : '70px 70px 200px 1fr', 
                             gap: '8px', 
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <input type="checkbox" onChange={() => toggleWeeklyDone(g.index, g.weekKey)} />
+                            </div>
+                            <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <label
+                                style={{
+                                  position: 'relative',
+                                  cursor: 'pointer',
+                                  width: '24px',
+                                  height: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                title="Mark as never going to complete"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={(() => {
+                                    const goals = weeklyGoals[g.weekKey] || []
+                                    const goal = goals[g.index] || { text: '', done: false, cancelled: false }
+                                    return !!goal.cancelled
+                                  })()}
+                                  onChange={() => toggleWeeklyCancelled(g.index, g.weekKey)}
+                                  style={{
+                                    position: 'absolute',
+                                    opacity: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    margin: 0,
+                                    cursor: 'pointer'
+                                  }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  border: '1px solid #ef4444',
+                                  borderRadius: '4px',
+                                  width: '100%',
+                                  height: '100%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '12px',
+                                  backgroundColor: (() => {
+                                    const goals = weeklyGoals[g.weekKey] || []
+                                    const goal = goals[g.index] || { text: '', done: false, cancelled: false }
+                                    return !!goal.cancelled ? '#ef4444' : 'transparent'
+                                  })(),
+                                  color: (() => {
+                                    const goals = weeklyGoals[g.weekKey] || []
+                                    const goal = goals[g.index] || { text: '', done: false, cancelled: false }
+                                    return !!goal.cancelled ? 'white' : '#ef4444'
+                                  })()
+                                }}>
+                                  ✕
+                                </span>
+                              </label>
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1761,8 +2065,9 @@ function App() {
 
                   {isMonthlyOpen && (
                     <div className="table">
-                      <div className="table-head" style={{ display: isMobile ? 'none' : 'grid', gridTemplateColumns: '70px 120px 1fr', gap: '8px', alignItems: 'center' }}>
+                      <div className="table-head" style={{ display: isMobile ? 'none' : 'grid', gridTemplateColumns: '70px 70px 120px 1fr', gap: '8px', alignItems: 'center' }}>
                         <div className="table-hour">Done</div>
+                        <div className="table-hour">Cancel</div>
                         <div className="table-hour">Month</div>
                         <div className="table-task">Goal</div>
                       </div>
@@ -1770,12 +2075,67 @@ function App() {
                         {[...allPending.monthly, ...pendingMonthly.map((g) => ({ monthKey: todayMonthKey, index: g.index, text: g.text }))].map((g, i) => (
                           <div key={`m-${g.monthKey}-${g.index}-${i}`} className="table-row" style={{ 
                             display: 'grid', 
-                            gridTemplateColumns: isMobile ? '60px 1fr' : '70px 120px 1fr', 
+                            gridTemplateColumns: isMobile ? '60px 60px 1fr' : '70px 70px 120px 1fr', 
                             gap: '8px', 
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                               <input type="checkbox" onChange={() => toggleMonthlyDone(g.index, g.monthKey)} />
+                            </div>
+                            <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <label
+                                style={{
+                                  position: 'relative',
+                                  cursor: 'pointer',
+                                  width: '24px',
+                                  height: '24px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                                title="Mark as never going to complete"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={(() => {
+                                    const goals = monthlyGoals[g.monthKey] || []
+                                    const goal = goals[g.index] || { text: '', done: false, cancelled: false }
+                                    return !!goal.cancelled
+                                  })()}
+                                  onChange={() => toggleMonthlyCancelled(g.index, g.monthKey)}
+                                  style={{
+                                    position: 'absolute',
+                                    opacity: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    margin: 0,
+                                    cursor: 'pointer'
+                                  }}
+                                />
+                                <span style={{
+                                  position: 'absolute',
+                                  border: '1px solid #ef4444',
+                                  borderRadius: '4px',
+                                  width: '100%',
+                                  height: '100%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '12px',
+                                  backgroundColor: (() => {
+                                    const goals = monthlyGoals[g.monthKey] || []
+                                    const goal = goals[g.index] || { text: '', done: false, cancelled: false }
+                                    return !!goal.cancelled ? '#ef4444' : 'transparent'
+                                  })(),
+                                  color: (() => {
+                                    const goals = monthlyGoals[g.monthKey] || []
+                                    const goal = goals[g.index] || { text: '', done: false, cancelled: false }
+                                    return !!goal.cancelled ? 'white' : '#ef4444'
+                                  })()
+                                }}>
+                                  ✕
+                                </span>
+                              </label>
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
