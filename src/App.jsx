@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWeek, getAllDays, getAllWeeks, getAllMonths, subscribeAllDays, subscribeAllWeeks, subscribeAllMonths, getDay } from './services/realtime'
+import { subscribeDay, saveDay, subscribeMonth, saveMonth, subscribeWeek, saveWeek, getAllDays, getAllWeeks, getAllMonths, subscribeAllDays, subscribeAllWeeks, subscribeAllMonths, getDay, getWeek, getMonth, subscribeNote, saveNote, getNote, getAllNotes, subscribeAllNotes } from './services/realtime'
 import { onAuthChange, logout } from './services/auth'
 import Login from './components/Login'
 import Portfolio from './components/Portfolio'
@@ -846,12 +846,12 @@ function App() {
   // Fetch all notes for user after login
   useEffect(() => {
     if (!user?.uid) return
-    getAllDays(user.uid).then((days) => {
-      // days is an object: { dateKey: { note: "...", tasks: {...} }, ... }
-      if (days) {
+    getAllNotes(user.uid).then((notes) => {
+      // notes is an object: { dateKey: "note text", ... }
+      if (notes) {
         const notesObj = {}
-        Object.entries(days).forEach(([dateKey, data]) => {
-          notesObj[dateKey] = data.note || ''
+        Object.entries(notes).forEach(([dateKey, note]) => {
+          notesObj[dateKey] = typeof note === 'string' ? note : ''
         })
         setDailyNotes((prev) => ({ ...prev, ...notesObj }))
       }
@@ -868,8 +868,8 @@ function App() {
 
   const handleSave = () => {
     if (!user?.uid) return
-    const dayData = { tasks: dailyTasks[dateKey] || {}, note: dailyNotes[dateKey] || '' }
-    saveDay(user.uid, dateKey, dayData).catch(() => {})
+    saveDay(user.uid, dateKey, { tasks: dailyTasks[dateKey] || {} }).catch(() => {})
+    saveNote(user.uid, dateKey, dailyNotes[dateKey] || '').catch(() => {})
     saveMonth(user.uid, monthKey, { goals: monthlyGoals[monthKey] || [] }).catch(() => {})
     saveWeek(user.uid, weekKey, { goals: weeklyGoals[weekKey] || [] }).catch(() => {})
     console.log('Data saved!')
@@ -879,6 +879,11 @@ function App() {
     // Clear only UI/local state for current date/week/month
     setDailyNotes((prev) => ({ ...prev, [dateKey]: '' }))
     setDailyTasks((prev) => ({ ...prev, [dateKey]: {} }))
+    // Also clear from Firebase
+    if (user?.uid) {
+      saveDay(user.uid, dateKey, { tasks: {} }).catch(() => {})
+      saveNote(user.uid, dateKey, '').catch(() => {})
+    }
   }
 
   // Live clock for pending cutoff (update every minute)
@@ -998,67 +1003,192 @@ function App() {
     (pendingWeekly?.length || 0) + (allPending.weekly?.length || 0) +
     (pendingMonthly?.length || 0) + (allPending.monthly?.length || 0)
 
-  const toggleDailyDone = (hour, dateKey = todayDateKey) => {
-    const current = dailyTasks[dateKey] || {}
-    const entry = current[hour] || { text: '', done: false, cancelled: false }
-    const next = { ...current, [hour]: { ...entry, done: true, cancelled: false } }
-    setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
-    if (user?.uid) {
-      const dayData = { tasks: next, note: dailyNotes[dateKey] || '' }
-      saveDay(user.uid, dateKey, dayData).catch(() => {})
+  const toggleDailyDone = async (hour, dateKey = todayDateKey) => {
+    if (!user?.uid) return
+    
+    try {
+      // Fetch current data from Firebase to ensure we don't lose existing tasks
+      const currentData = await getDay(user.uid, dateKey)
+      const existingTasks = currentData.tasks || {}
+      
+      // Get the current entry or create default
+      const entry = existingTasks[hour] || { text: '', done: false, cancelled: false }
+      
+      // Update only this specific hour, preserve all other tasks
+      const updatedTasks = { ...existingTasks, [hour]: { ...entry, done: true, cancelled: false } }
+      
+      // Save merged data back to Firebase (only tasks, not notes)
+      await saveDay(user.uid, dateKey, { tasks: updatedTasks })
+      
+      // Update local state after successful save
+      setDailyTasks((prev) => ({ ...prev, [dateKey]: updatedTasks }))
+    } catch (error) {
+      console.error(`Error toggling daily done for ${dateKey}:`, error)
+      // Fallback: use local state if fetch fails
+      const current = dailyTasks[dateKey] || {}
+      const entry = current[hour] || { text: '', done: false, cancelled: false }
+      const next = { ...current, [hour]: { ...entry, done: true, cancelled: false } }
+      setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
+      saveDay(user.uid, dateKey, { tasks: next }).catch(() => {})
     }
   }
 
-  const toggleDailyCancelled = (hour, dateKey = todayDateKey) => {
-    const current = dailyTasks[dateKey] || {}
-    const entry = current[hour] || { text: '', done: false, cancelled: false }
-    const newCancelled = !entry.cancelled
-    const next = { ...current, [hour]: { ...entry, cancelled: newCancelled, done: newCancelled ? false : entry.done } }
-    setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
-    if (user?.uid) {
-      const dayData = { tasks: next, note: dailyNotes[dateKey] || '' }
-      saveDay(user.uid, dateKey, dayData).catch(() => {})
+  const toggleDailyCancelled = async (hour, dateKey = todayDateKey) => {
+    if (!user?.uid) return
+    
+    try {
+      // Fetch current data from Firebase to ensure we don't lose existing tasks
+      const currentData = await getDay(user.uid, dateKey)
+      const existingTasks = currentData.tasks || {}
+      
+      // Get the current entry or create default
+      const entry = existingTasks[hour] || { text: '', done: false, cancelled: false }
+      const newCancelled = !entry.cancelled
+      
+      // Update only this specific hour, preserve all other tasks
+      const updatedTasks = { ...existingTasks, [hour]: { ...entry, cancelled: newCancelled, done: newCancelled ? false : entry.done } }
+      
+      // Save merged data back to Firebase (only tasks, not notes)
+      await saveDay(user.uid, dateKey, { tasks: updatedTasks })
+      
+      // Update local state after successful save
+      setDailyTasks((prev) => ({ ...prev, [dateKey]: updatedTasks }))
+    } catch (error) {
+      console.error(`Error toggling daily cancelled for ${dateKey}:`, error)
+      // Fallback: use local state if fetch fails
+      const current = dailyTasks[dateKey] || {}
+      const entry = current[hour] || { text: '', done: false, cancelled: false }
+      const newCancelled = !entry.cancelled
+      const next = { ...current, [hour]: { ...entry, cancelled: newCancelled, done: newCancelled ? false : entry.done } }
+      setDailyTasks((prev) => ({ ...prev, [dateKey]: next }))
+      saveDay(user.uid, dateKey, { tasks: next }).catch(() => {})
     }
   }
 
-  const toggleWeeklyDone = (index, weekKey = todayWeekKey) => {
-    const list = (weeklyGoals[weekKey] || []).slice()
-    const g = list[index] || { text: '', done: false, cancelled: false }
-    list[index] = { ...g, done: true, cancelled: false }
-    setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
-    if (user?.uid) {
+  const toggleWeeklyDone = async (index, weekKey = todayWeekKey) => {
+    if (!user?.uid) return
+    
+    try {
+      // Fetch current data from Firebase to ensure we don't lose existing goals
+      const currentData = await getWeek(user.uid, weekKey)
+      const existingGoals = currentData.goals || []
+      
+      // Ensure the list is long enough
+      const list = existingGoals.length > index ? [...existingGoals] : [...existingGoals, ...Array(index - existingGoals.length + 1).fill({ text: '', done: false, cancelled: false })]
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      
+      // Update only this specific goal, preserve all other goals
+      list[index] = { ...g, done: true, cancelled: false }
+      
+      // Save merged data back to Firebase
+      await saveWeek(user.uid, weekKey, { goals: list })
+      
+      // Update local state after successful save
+      setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
+    } catch (error) {
+      console.error(`Error toggling weekly done for ${weekKey}:`, error)
+      // Fallback: use local state if fetch fails
+      const list = (weeklyGoals[weekKey] || []).slice()
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      list[index] = { ...g, done: true, cancelled: false }
+      setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
       saveWeek(user.uid, weekKey, { goals: list }).catch(() => {})
     }
   }
 
-  const toggleWeeklyCancelled = (index, weekKey = todayWeekKey) => {
-    const list = (weeklyGoals[weekKey] || []).slice()
-    const g = list[index] || { text: '', done: false, cancelled: false }
-    const newCancelled = !g.cancelled
-    list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
-    setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
-    if (user?.uid) {
+  const toggleWeeklyCancelled = async (index, weekKey = todayWeekKey) => {
+    if (!user?.uid) return
+    
+    try {
+      // Fetch current data from Firebase to ensure we don't lose existing goals
+      const currentData = await getWeek(user.uid, weekKey)
+      const existingGoals = currentData.goals || []
+      
+      // Ensure the list is long enough
+      const list = existingGoals.length > index ? [...existingGoals] : [...existingGoals, ...Array(index - existingGoals.length + 1).fill({ text: '', done: false, cancelled: false })]
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      const newCancelled = !g.cancelled
+      
+      // Update only this specific goal, preserve all other goals
+      list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
+      
+      // Save merged data back to Firebase
+      await saveWeek(user.uid, weekKey, { goals: list })
+      
+      // Update local state after successful save
+      setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
+    } catch (error) {
+      console.error(`Error toggling weekly cancelled for ${weekKey}:`, error)
+      // Fallback: use local state if fetch fails
+      const list = (weeklyGoals[weekKey] || []).slice()
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      const newCancelled = !g.cancelled
+      list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
+      setWeeklyGoals((prev) => ({ ...prev, [weekKey]: list }))
       saveWeek(user.uid, weekKey, { goals: list }).catch(() => {})
     }
   }
 
-  const toggleMonthlyDone = (index, monthKey = todayMonthKey) => {
-    const list = (monthlyGoals[monthKey] || []).slice()
-    const g = list[index] || { text: '', done: false, cancelled: false }
-    list[index] = { ...g, done: true, cancelled: false }
-    setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
-    if (user?.uid) {
+  const toggleMonthlyDone = async (index, monthKey = todayMonthKey) => {
+    if (!user?.uid) return
+    
+    try {
+      // Fetch current data from Firebase to ensure we don't lose existing goals
+      const currentData = await getMonth(user.uid, monthKey)
+      const existingGoals = currentData.goals || []
+      
+      // Ensure the list is long enough
+      const list = existingGoals.length > index ? [...existingGoals] : [...existingGoals, ...Array(index - existingGoals.length + 1).fill({ text: '', done: false, cancelled: false })]
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      
+      // Update only this specific goal, preserve all other goals
+      list[index] = { ...g, done: true, cancelled: false }
+      
+      // Save merged data back to Firebase
+      await saveMonth(user.uid, monthKey, { goals: list })
+      
+      // Update local state after successful save
+      setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
+    } catch (error) {
+      console.error(`Error toggling monthly done for ${monthKey}:`, error)
+      // Fallback: use local state if fetch fails
+      const list = (monthlyGoals[monthKey] || []).slice()
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      list[index] = { ...g, done: true, cancelled: false }
+      setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
       saveMonth(user.uid, monthKey, { goals: list }).catch(() => {})
     }
   }
 
-  const toggleMonthlyCancelled = (index, monthKey = todayMonthKey) => {
-    const list = (monthlyGoals[monthKey] || []).slice()
-    const g = list[index] || { text: '', done: false, cancelled: false }
-    const newCancelled = !g.cancelled
-    list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
-    setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
-    if (user?.uid) {
+  const toggleMonthlyCancelled = async (index, monthKey = todayMonthKey) => {
+    if (!user?.uid) return
+    
+    try {
+      // Fetch current data from Firebase to ensure we don't lose existing goals
+      const currentData = await getMonth(user.uid, monthKey)
+      const existingGoals = currentData.goals || []
+      
+      // Ensure the list is long enough
+      const list = existingGoals.length > index ? [...existingGoals] : [...existingGoals, ...Array(index - existingGoals.length + 1).fill({ text: '', done: false, cancelled: false })]
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      const newCancelled = !g.cancelled
+      
+      // Update only this specific goal, preserve all other goals
+      list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
+      
+      // Save merged data back to Firebase
+      await saveMonth(user.uid, monthKey, { goals: list })
+      
+      // Update local state after successful save
+      setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
+    } catch (error) {
+      console.error(`Error toggling monthly cancelled for ${monthKey}:`, error)
+      // Fallback: use local state if fetch fails
+      const list = (monthlyGoals[monthKey] || []).slice()
+      const g = list[index] || { text: '', done: false, cancelled: false }
+      const newCancelled = !g.cancelled
+      list[index] = { ...g, cancelled: newCancelled, done: newCancelled ? false : g.done }
+      setMonthlyGoals((prev) => ({ ...prev, [monthKey]: list }))
       saveMonth(user.uid, monthKey, { goals: list }).catch(() => {})
     }
   }
@@ -1067,8 +1197,10 @@ function App() {
   useEffect(() => {
     if (!user?.uid) return
     const unsubDay = subscribeDay(user.uid, dateKey, (data) => {
-      setDailyNotes((prev) => ({ ...prev, [dateKey]: data.note || '' }))
       setDailyTasks((prev) => ({ ...prev, [dateKey]: data.tasks || {} }))
+    })
+    const unsubNote = subscribeNote(user.uid, dateKey, (note) => {
+      setDailyNotes((prev) => ({ ...prev, [dateKey]: note || '' }))
     })
     const unsubMonth = subscribeMonth(user.uid, monthKey, (data) => {
       const goals = Array.isArray(data.goals) ? data.goals : Array(6).fill('')
@@ -1080,6 +1212,7 @@ function App() {
     })
     return () => {
       unsubDay && unsubDay()
+      unsubNote && unsubNote()
       unsubMonth && unsubMonth()
       unsubWeek && unsubWeek()
     }
@@ -1111,14 +1244,12 @@ function App() {
         // Fetch current data from Firebase to ensure we don't lose existing tasks
         const currentData = await getDay(user.uid, key)
         const existingTasks = currentData.tasks || {}
-        const existingNote = currentData.note || ''
         
         // Preserve all existing tasks, only update/add the specific hour
         const updatedTasks = { ...existingTasks, [hour]: { text, done: false, cancelled: false } }
         
-        // Save merged data back to Firebase
-        const dayData = { tasks: updatedTasks, note: existingNote || dailyNotes[key] || '' }
-        await saveDay(user.uid, key, dayData)
+        // Save merged data back to Firebase (only tasks, not notes)
+        await saveDay(user.uid, key, { tasks: updatedTasks })
         
         // Update local state after successful save to keep UI in sync
         setDailyTasks((prev) => {
@@ -1126,9 +1257,6 @@ function App() {
           next[key] = updatedTasks
           return next
         })
-        if (existingNote && !dailyNotes[key]) {
-          setDailyNotes((prev) => ({ ...prev, [key]: existingNote }))
-        }
       } catch (error) {
         console.error(`Error saving repeat task for ${key}:`, error)
         // Fallback: update local state only if Firebase fails
@@ -1755,21 +1883,7 @@ function App() {
                                     const entry = current[t.hour] || { text: '', done: false, cancelled: false }
                                     return !!entry.cancelled
                                   })()}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      toggleDailyCancelled(t.hour, t.dateKey)
-                                    } else {
-                                      // Uncancel: reset cancelled state
-                                      const current = dailyTasks[t.dateKey] || {}
-                                      const entry = current[t.hour] || { text: '', done: false, cancelled: false }
-                                      const next = { ...current, [t.hour]: { ...entry, cancelled: false } }
-                                      setDailyTasks((prev) => ({ ...prev, [t.dateKey]: next }))
-                                      if (user?.uid) {
-                                        const dayData = { tasks: next, note: dailyNotes[t.dateKey] || '' }
-                                        saveDay(user.uid, t.dateKey, dayData).catch(() => {})
-                                      }
-                                    }
-                                  }}
+                                  onChange={() => toggleDailyCancelled(t.hour, t.dateKey)}
                                   style={{
                                     position: 'absolute',
                                     opacity: 0,
