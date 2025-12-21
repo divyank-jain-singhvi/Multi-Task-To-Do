@@ -180,6 +180,18 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
   const hours = useMemo(() => Array.from({ length: 24 }, (_, i) => i), [])
   const [repeatHour, setRepeatHour] = useState(null)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  // Extra tasks state
+  const extraTasks = tasks.extra || [];
+  const handleExtraChange = (idx, field, value) => {
+    const updated = extraTasks.map((t, i) => i === idx ? { ...t, [field]: value } : t);
+    onChange({ ...tasks, extra: updated });
+  };
+  const handleAddExtra = () => {
+    onChange({ ...tasks, extra: [...extraTasks, { text: '', done: false, cancelled: false }] });
+  };
+  const handleRemoveExtra = (idx) => {
+    onChange({ ...tasks, extra: extraTasks.filter((_, i) => i !== idx) });
+  };
 
   return (
     <div className="table">
@@ -196,6 +208,8 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
           <div key={h} className="table-row" style={{ 
             gridTemplateColumns: isMobile ? '60px 1fr 60px' : '100px 1fr 80px'
           }}>
+            {/* ...hourly task UI unchanged... */}
+            {/* ...existing code... */}
             <div className="table-hour table-cell" style={{ 
               fontSize: isMobile ? '11px' : '12px',
               padding: isMobile ? '8px 6px' : '10px'
@@ -205,11 +219,13 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
             <div className="table-task table-cell" style={{ 
               padding: isMobile ? '8px 6px' : '10px'
             }}>
+              {/* ...existing code for hourly task... */}
               <div style={{ 
                 display: 'flex', 
                 gap: isMobile ? '6px' : '8px', 
                 alignItems: 'flex-start' 
               }}>
+                {/* ...checkboxes and textarea... */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
                   <input
                     type="checkbox"
@@ -345,6 +361,58 @@ function DailyTable({ dateKey, tasks, onChange, isMobile = false, onRepeatTask }
             </div>
           </div>
         ))}
+        {/* Extra Tasks Section - same UI as hourly, except delete button instead of repeat */}
+        <div style={{ marginTop: '18px', borderTop: '1px solid #22222a', paddingTop: '12px' }}>
+          <div style={{ fontWeight: 600, color: '#e6e6e9', marginBottom: '8px' }}>Extra Tasks (unlimited)</div>
+          {extraTasks.map((task, idx) => (
+            <div key={idx} className="table-row" style={{ gridTemplateColumns: isMobile ? '60px 1fr 60px' : '100px 1fr 80px', display: 'grid', alignItems: 'center', marginBottom: '8px' }}>
+              <div className="table-hour table-cell" style={{ fontSize: isMobile ? '11px' : '12px', padding: isMobile ? '8px 6px' : '10px' }}>Extra</div>
+              <div className="table-task table-cell" style={{ padding: isMobile ? '8px 6px' : '10px' }}>
+                <div style={{ display: 'flex', gap: isMobile ? '6px' : '8px', alignItems: 'flex-start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={!!task.done}
+                      onChange={e => handleExtraChange(idx, 'done', e.target.checked)}
+                      style={{ marginTop: isMobile ? '4px' : '6px', width: isMobile ? '14px' : '16px', height: isMobile ? '14px' : '16px' }}
+                    />
+                    <label
+                      style={{ position: 'relative', cursor: 'pointer', width: isMobile ? '18px' : '20px', height: isMobile ? '18px' : '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title="Mark as never going to complete"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!task.cancelled}
+                        onChange={e => handleExtraChange(idx, 'cancelled', e.target.checked)}
+                        style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', margin: 0, cursor: 'pointer' }}
+                      />
+                      <span style={{ position: 'absolute', border: '1px solid #ef4444', borderRadius: '4px', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', fontSize: isMobile ? '10px' : '12px', backgroundColor: !!task.cancelled ? '#ef4444' : 'transparent', color: !!task.cancelled ? 'white' : '#ef4444' }}>✕</span>
+                    </label>
+                  </div>
+                  <textarea
+                    value={task.text}
+                    onChange={e => handleExtraChange(idx, 'text', e.target.value)}
+                    placeholder="Add extra task..."
+                    rows={isMobile ? 1 : 2}
+                    className="task-input"
+                    style={{ fontSize: isMobile ? '12px' : '14px', padding: isMobile ? '6px' : '8px', minHeight: isMobile ? '32px' : '44px' }}
+                  />
+                </div>
+              </div>
+              <div className="table-repeat table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '8px 4px' : '10px' }}>
+                <button
+                  onClick={() => handleRemoveExtra(idx)}
+                  style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', padding: isMobile ? '6px 10px' : '8px 12px', fontSize: isMobile ? '11px' : '12px', fontWeight: '500', cursor: 'pointer', boxShadow: '0 2px 8px rgba(102,126,234,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
+                  title="Delete extra task"
+                >Delete</button>
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={handleAddExtra}
+            style={{ background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', padding: '8px 14px', fontSize: isMobile ? '13px' : '15px', cursor: 'pointer', marginTop: '8px' }}
+          >+ Add Extra Task</button>
+        </div>
       </div>
     </div>
   )
@@ -868,7 +936,17 @@ function App() {
 
   const handleSave = () => {
     if (!user?.uid) return
-    saveDay(user.uid, dateKey, { tasks: dailyTasks[dateKey] || {} }).catch(() => {})
+    // Ensure extra tasks are saved properly
+    const dayTasks = dailyTasks[dateKey] || {}
+    const tasksToSave = { ...dayTasks }
+    if (Array.isArray(dayTasks.extra)) {
+      tasksToSave.extra = dayTasks.extra.map((v) => ({
+        text: v.text || '',
+        done: !!v.done,
+        cancelled: !!v.cancelled
+      }))
+    }
+    saveDay(user.uid, dateKey, { tasks: tasksToSave }).catch(() => {})
     saveNote(user.uid, dateKey, dailyNotes[dateKey] || '').catch(() => {})
     saveMonth(user.uid, monthKey, { goals: monthlyGoals[monthKey] || [] }).catch(() => {})
     saveWeek(user.uid, weekKey, { goals: weeklyGoals[weekKey] || [] }).catch(() => {})
@@ -974,15 +1052,29 @@ function App() {
 
   // Pending computations for TODAY only; daily limited to current hour or earlier
   const pendingDaily = useMemo(() => {
-    const tasksForDay = dailyTasks[todayDateKey] || {}
-    return Object.entries(tasksForDay)
+    const tasksForDay = dailyTasks[todayDateKey] || {};
+    // Hourly tasks
+    const hourly = Object.entries(tasksForDay)
       .filter(([h, v]) => {
-        const hourNum = Number(h)
-        return hourNum <= currentHour && v && typeof v === 'object' && !v.done && !v.cancelled && (v.text || '').trim() !== ''
+        // Only numeric keys (hour slots)
+        if (isNaN(Number(h))) return false;
+        const hourNum = Number(h);
+        return hourNum <= currentHour && v && typeof v === 'object' && !v.done && !v.cancelled && (v.text || '').trim() !== '';
       })
-      .map(([hour, v]) => ({ hour: Number(hour), text: v.text }))
-      .sort((a, b) => a.hour - b.hour)
-  }, [dailyTasks, todayDateKey, currentHour])
+      .map(([hour, v]) => ({ hour: Number(hour), text: v.text }));
+    // Extra tasks
+    const extra = Array.isArray(tasksForDay.extra)
+      ? tasksForDay.extra.filter(v => v && typeof v === 'object' && !v.done && !v.cancelled && (v.text || '').trim() !== '')
+      : [];
+    // Mark extra tasks with hour: null
+    const extraPending = extra.map((v, idx) => ({ hour: null, text: v.text, extraIndex: idx }));
+    return [...hourly, ...extraPending].sort((a, b) => {
+      if (a.hour === null && b.hour !== null) return 1;
+      if (a.hour !== null && b.hour === null) return -1;
+      if (a.hour !== null && b.hour !== null) return a.hour - b.hour;
+      return 0;
+    });
+  }, [dailyTasks, todayDateKey, currentHour]);
 
   const pendingWeekly = useMemo(() => {
     const goals = weeklyGoals[todayWeekKey] || []
@@ -1853,70 +1945,150 @@ function App() {
                         <div className="table-task">Task</div>
                       </div>
                       <div className="table-body">
-                        {[...allPending.daily, ...pendingDaily.map((t) => ({ dateKey: todayDateKey, hour: t.hour, text: t.text }))].map((t, i) => (
-                          <div key={`d-${t.dateKey}-${t.hour}-${i}`} className="table-row" style={{ 
+                        {[...allPending.daily, ...pendingDaily.map((t, i) => ({ dateKey: todayDateKey, hour: t.hour, text: t.text, extraIndex: t.extraIndex }))].map((t, i) => (
+                          <div key={`d-${t.dateKey}-${t.hour !== null ? t.hour : 'extra'+t.extraIndex}-${i}`} className="table-row" style={{ 
                             display: 'grid', 
                             gridTemplateColumns: isMobile ? '60px 60px 1fr' : '70px 70px 140px 80px 1fr', 
                             gap: '8px', 
                             alignItems: 'center'
                           }}>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <input type="checkbox" onChange={() => toggleDailyDone(t.hour, t.dateKey)} />
+                              {t.hour !== null ? (
+                                <input type="checkbox" onChange={() => toggleDailyDone(t.hour, t.dateKey)} />
+                              ) : (
+                                <input type="checkbox" onChange={() => {
+                                  // Mark extra task as done
+                                  const dayTasks = dailyTasks[t.dateKey] || {};
+                                  const extraArr = Array.isArray(dayTasks.extra) ? dayTasks.extra.slice() : [];
+                                  if (extraArr[t.extraIndex]) {
+                                    extraArr[t.extraIndex] = { ...extraArr[t.extraIndex], done: true, cancelled: false };
+                                    setDailyTasks(prev => ({ ...prev, [t.dateKey]: { ...dayTasks, extra: extraArr } }));
+                                  }
+                                }} />
+                              )}
                             </div>
                             <div className="table-hour table-cell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <label
-                                style={{
-                                  position: 'relative',
-                                  cursor: 'pointer',
-                                  width: '24px',
-                                  height: '24px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}
-                                title="Mark as never going to complete"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={(() => {
-                                    const current = dailyTasks[t.dateKey] || {}
-                                    const entry = current[t.hour] || { text: '', done: false, cancelled: false }
-                                    return !!entry.cancelled
-                                  })()}
-                                  onChange={() => toggleDailyCancelled(t.hour, t.dateKey)}
+                              {t.hour !== null ? (
+                                <label
                                   style={{
+                                    position: 'relative',
+                                    cursor: 'pointer',
+                                    width: '24px',
+                                    height: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                  title="Mark as never going to complete"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={(() => {
+                                      const current = dailyTasks[t.dateKey] || {}
+                                      const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                      return !!entry.cancelled
+                                    })()}
+                                    onChange={() => toggleDailyCancelled(t.hour, t.dateKey)}
+                                    style={{
+                                      position: 'absolute',
+                                      opacity: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      margin: 0,
+                                      cursor: 'pointer'
+                                    }}
+                                  />
+                                  <span style={{
                                     position: 'absolute',
-                                    opacity: 0,
+                                    border: '1px solid #ef4444',
+                                    borderRadius: '4px',
                                     width: '100%',
                                     height: '100%',
-                                    margin: 0,
-                                    cursor: 'pointer'
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '12px',
+                                    backgroundColor: (() => {
+                                      const current = dailyTasks[t.dateKey] || {}
+                                      const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                      return !!entry.cancelled ? '#ef4444' : 'transparent'
+                                    })(),
+                                    color: (() => {
+                                      const current = dailyTasks[t.dateKey] || {}
+                                      const entry = current[t.hour] || { text: '', done: false, cancelled: false }
+                                      return !!entry.cancelled ? 'white' : '#ef4444'
+                                    })()
+                                  }}>
+                                    ✕
+                                  </span>
+                                </label>
+                              ) : (
+                                <label
+                                  style={{
+                                    position: 'relative',
+                                    cursor: 'pointer',
+                                    width: '24px',
+                                    height: '24px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                   }}
-                                />
-                                <span style={{
-                                  position: 'absolute',
-                                  border: '1px solid #ef4444',
-                                  borderRadius: '4px',
-                                  width: '100%',
-                                  height: '100%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '12px',
-                                  backgroundColor: (() => {
-                                    const current = dailyTasks[t.dateKey] || {}
-                                    const entry = current[t.hour] || { text: '', done: false, cancelled: false }
-                                    return !!entry.cancelled ? '#ef4444' : 'transparent'
-                                  })(),
-                                  color: (() => {
-                                    const current = dailyTasks[t.dateKey] || {}
-                                    const entry = current[t.hour] || { text: '', done: false, cancelled: false }
-                                    return !!entry.cancelled ? 'white' : '#ef4444'
-                                  })()
-                                }}>
-                                  ✕
-                                </span>
-                              </label>
+                                  title="Mark as never going to complete"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={(() => {
+                                      const dayTasks = dailyTasks[t.dateKey] || {};
+                                      const extraArr = Array.isArray(dayTasks.extra) ? dayTasks.extra : [];
+                                      const entry = extraArr[t.extraIndex] || { text: '', done: false, cancelled: false };
+                                      return !!entry.cancelled;
+                                    })()}
+                                    onChange={() => {
+                                      // Mark extra task as cancelled
+                                      const dayTasks = dailyTasks[t.dateKey] || {};
+                                      const extraArr = Array.isArray(dayTasks.extra) ? dayTasks.extra.slice() : [];
+                                      if (extraArr[t.extraIndex]) {
+                                        const entry = extraArr[t.extraIndex];
+                                        extraArr[t.extraIndex] = { ...entry, cancelled: !entry.cancelled, done: entry.cancelled ? entry.done : false };
+                                        setDailyTasks(prev => ({ ...prev, [t.dateKey]: { ...dayTasks, extra: extraArr } }));
+                                      }
+                                    }}
+                                    style={{
+                                      position: 'absolute',
+                                      opacity: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      margin: 0,
+                                      cursor: 'pointer'
+                                    }}
+                                  />
+                                  <span style={{
+                                    position: 'absolute',
+                                    border: '1px solid #ef4444',
+                                    borderRadius: '4px',
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '12px',
+                                    backgroundColor: (() => {
+                                      const dayTasks = dailyTasks[t.dateKey] || {};
+                                      const extraArr = Array.isArray(dayTasks.extra) ? dayTasks.extra : [];
+                                      const entry = extraArr[t.extraIndex] || { text: '', done: false, cancelled: false };
+                                      return !!entry.cancelled ? '#ef4444' : 'transparent';
+                                    })(),
+                                    color: (() => {
+                                      const dayTasks = dailyTasks[t.dateKey] || {};
+                                      const extraArr = Array.isArray(dayTasks.extra) ? dayTasks.extra : [];
+                                      const entry = extraArr[t.extraIndex] || { text: '', done: false, cancelled: false };
+                                      return !!entry.cancelled ? 'white' : '#ef4444';
+                                    })()
+                                  }}>
+                                    ✕
+                                  </span>
+                                </label>
+                              )}
                             </div>
                             {isMobile ? (
                               <div className="table-task table-cell" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1937,7 +2109,7 @@ function App() {
                                     {t.dateKey}
                                   </button>
                                   <span>•</span>
-                                  <span>{String(t.hour).padStart(2,'0')}:00</span>
+                                  <span>{t.hour !== null ? `${String(t.hour).padStart(2,'0')}:00` : 'Extra'}</span>
                                 </div>
                                 <button
                                   onClick={() => navigateToDate(t.dateKey)}
@@ -1979,7 +2151,7 @@ function App() {
                                 >
                                   {t.dateKey}
                                 </button>
-                                <div className="table-hour table-cell" style={{ whiteSpace: 'nowrap' }}>{String(t.hour).padStart(2,'0')}:00</div>
+                                <div className="table-hour table-cell" style={{ whiteSpace: 'nowrap' }}>{t.hour !== null ? `${String(t.hour).padStart(2,'0')}:00` : 'Extra'}</div>
                                 <button
                                   onClick={() => navigateToDate(t.dateKey)}
                                   className="table-task table-cell"

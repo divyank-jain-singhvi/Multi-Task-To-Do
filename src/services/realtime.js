@@ -19,13 +19,26 @@ export function subscribeDay(userId, dateKey, callback) {
     const inputTasks = data.tasks || {}
     const tasks = {}
     Object.keys(inputTasks).forEach((k) => {
-      const v = inputTasks[k]
-      if (typeof v === 'string') {
-        tasks[k] = { text: v, done: false, cancelled: false }
-      } else if (v && typeof v === 'object') {
-        tasks[k] = { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+      if (k === 'extra' && Array.isArray(inputTasks.extra)) {
+        // Preserve extra array as is, but normalize each item
+        tasks.extra = inputTasks.extra.map((v) => {
+          if (typeof v === 'string') {
+            return { text: v, done: false, cancelled: false }
+          } else if (v && typeof v === 'object') {
+            return { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+          } else {
+            return { text: '', done: false, cancelled: false }
+          }
+        })
       } else {
-        tasks[k] = { text: '', done: false, cancelled: false }
+        const v = inputTasks[k]
+        if (typeof v === 'string') {
+          tasks[k] = { text: v, done: false, cancelled: false }
+        } else if (v && typeof v === 'object') {
+          tasks[k] = { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+        } else {
+          tasks[k] = { text: '', done: false, cancelled: false }
+        }
       }
     })
     callback({ tasks })
@@ -36,7 +49,16 @@ export function subscribeDay(userId, dateKey, callback) {
 export async function saveDay(userId, dateKey, data) {
   if (!db) return
   // Only save tasks, not notes
-  await set(child(root(userId), `days/${dateKey}`), { tasks: data.tasks || {} })
+  // Ensure extra array is preserved
+  const tasks = { ...data.tasks }
+  if (Array.isArray(data.tasks?.extra)) {
+    tasks.extra = data.tasks.extra.map((v) => ({
+      text: v.text || '',
+      done: !!v.done,
+      cancelled: !!v.cancelled
+    }))
+  }
+  await set(child(root(userId), `days/${dateKey}`), { tasks })
 }
 
 export async function getDay(userId, dateKey) {
@@ -49,13 +71,26 @@ export async function getDay(userId, dateKey) {
   const inputTasks = data.tasks || {}
   const tasks = {}
   Object.keys(inputTasks).forEach((k) => {
-    const v = inputTasks[k]
-    if (typeof v === 'string') {
-      tasks[k] = { text: v, done: false, cancelled: false }
-    } else if (v && typeof v === 'object') {
-      tasks[k] = { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+    if (k === 'extra' && Array.isArray(inputTasks.extra)) {
+      // Preserve extra array as is, but normalize each item
+      tasks.extra = inputTasks.extra.map((v) => {
+        if (typeof v === 'string') {
+          return { text: v, done: false, cancelled: false }
+        } else if (v && typeof v === 'object') {
+          return { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+        } else {
+          return { text: '', done: false, cancelled: false }
+        }
+      })
     } else {
-      tasks[k] = { text: '', done: false, cancelled: false }
+      const v = inputTasks[k]
+      if (typeof v === 'string') {
+        tasks[k] = { text: v, done: false, cancelled: false }
+      } else if (v && typeof v === 'object') {
+        tasks[k] = { text: v.text || '', done: !!v.done, cancelled: !!v.cancelled }
+      } else {
+        tasks[k] = { text: '', done: false, cancelled: false }
+      }
     }
   })
   return { tasks }

@@ -81,7 +81,9 @@ function Analysis({ user, isMobile = false }) {
     daysInMonth.forEach(({ dateKey }) => {
       const dayData = allDaysData[dateKey]
       if (dayData?.tasks) {
+        // Hourly tasks
         Object.entries(dayData.tasks).forEach(([hour, task]) => {
+          if (hour === 'extra') return;
           if (task?.text && task.text.trim() !== '') {
             const key = `${hour}:00 - ${task.text}`
             if (!taskMap.has(key)) {
@@ -94,6 +96,22 @@ function Analysis({ user, isMobile = false }) {
             }
           }
         })
+        // Extra tasks: treat as hourly (hour=null)
+        if (Array.isArray(dayData.tasks.extra)) {
+          dayData.tasks.extra.forEach((task, idx) => {
+            if (task?.text && task.text.trim() !== '') {
+              const key = `extra${idx}:00 - ${task.text}`
+              if (!taskMap.has(key)) {
+                taskMap.set(key, {
+                  hour: null,
+                  text: task.text,
+                  key,
+                  originalHour: `extra${idx}`
+                })
+              }
+            }
+          })
+        }
       }
     })
     
@@ -190,16 +208,18 @@ function Analysis({ user, isMobile = false }) {
         const dayData = allDaysData[dateKey]
         if (!dayData?.tasks) return { day: dayNumber, completed: 0, total: 0, percentage: 0 }
         
-        // Count all tasks that have text content (including cancelled)
-        const allTasks = Object.values(dayData.tasks).filter(task => task?.text && task.text.trim() !== '')
-        
+        // Count all hourly and extra tasks that have text content (including cancelled)
+        const allTasks = [
+          ...Object.entries(dayData.tasks)
+            .filter(([hour, task]) => hour !== 'extra' && task?.text && task.text.trim() !== '')
+            .map(([hour, task]) => task),
+          ...(Array.isArray(dayData.tasks.extra) ? dayData.tasks.extra.filter(task => task?.text && task.text.trim() !== '') : [])
+        ]
         // Count completed tasks (must have text and be marked done, cancelled tasks don't count as completed)
         const completed = allTasks.filter(task => task.done === true && !task.cancelled).length
         const total = allTasks.length
-        
         // Calculate percentage based on tasks actually done vs total tasks
         const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
-        
         return { day: dayNumber, completed, total, percentage }
       } catch (err) {
         console.warn('Error calculating daily completion:', err)
@@ -248,24 +268,28 @@ function Analysis({ user, isMobile = false }) {
       const dayData = allDaysData[dateKey]
       if (!dayData?.tasks) return 'missing'
       
-      // Parse task key into hour and text
-      const match = taskKey.match(/^(\d+):00 - (.+)$/)
-      if (!match) return 'missing'
-      
-      const [_, targetHour, targetText] = match
-      
-      // Check all tasks for this day to find a match
-      for (const [hour, task] of Object.entries(dayData.tasks)) {
-        // Skip invalid tasks
-        if (!task?.text || typeof task.text !== 'string') continue
-        
-        // Compare both hour and text, handling string/number hour formats
-        if (hour === targetHour && task.text.trim() === targetText.trim()) {
+      // Support both hourly and extra task keys
+      const hourlyMatch = taskKey.match(/^([0-9]+):00 - (.+)$/)
+      const extraMatch = taskKey.match(/^extra([0-9]+):00 - (.+)$/)
+      if (hourlyMatch) {
+        const [_, targetHour, targetText] = hourlyMatch
+        for (const [hour, task] of Object.entries(dayData.tasks)) {
+          if (hour === 'extra') continue;
+          if (!task?.text || typeof task.text !== 'string') continue
+          if (hour === targetHour && task.text.trim() === targetText.trim()) {
+            if (task.cancelled) return 'cancelled'
+            return task.done ? 'completed' : 'pending'
+          }
+        }
+      } else if (extraMatch) {
+        const [_, extraIdx, targetText] = extraMatch
+        const extraArr = Array.isArray(dayData.tasks.extra) ? dayData.tasks.extra : []
+        const task = extraArr[parseInt(extraIdx)]
+        if (task && task.text.trim() === targetText.trim()) {
           if (task.cancelled) return 'cancelled'
           return task.done ? 'completed' : 'pending'
         }
       }
-      
       return 'missing'
     } catch (err) {
       console.warn('Error checking task status:', err, { taskKey, dateKey })
